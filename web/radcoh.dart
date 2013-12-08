@@ -11,22 +11,35 @@ part 'matrix4.dart';
 // not sure yet
 part 'gl_program.dart';
 
-// declare the main canvas Element and RenderingContext
-CanvasElement canvas;
-RenderingContext gl;
 
 
 void main() {
   mvMatrix = new Matrix4()..identity();
-  canvas = querySelector("#the-haps");
-  gl = canvas.getContext3d();
+  CanvasElement canvas = querySelector("#the-haps");
   
-  if(gl == null) {
-    print("There's no 3d WebGL thingy. Whatever that is. Barf.");
+  RenderingContext gl;
+  try {
+    gl = glContextSetup(canvas);
+  } catch(e) {
+    print(e);
     return;
   }
   
-  gl.clearColor(0.0, 0.15, 0.05, 1.0);
+  var p = programSetup(gl);
+  gl.useProgram(p.program);
+  
+  bufferSetup(gl);
+  drawScene(canvas, gl, p);
+}
+
+RenderingContext glContextSetup(CanvasElement canvas) {
+  RenderingContext gl = canvas.getContext3d();
+  
+  if(gl == null) {
+    throw "There's no 3d WebGL thingy. Whatever that is. Barf.";
+  }
+  
+  gl.clearColor(1.0, 0.95, 0.0, 1.0);
   gl.clearDepth(1.0);
   
   // set the GL viewport to the same size as the canvas element so there's no resizing
@@ -36,17 +49,11 @@ void main() {
   gl.enable(DEPTH_TEST);
   gl.disable(BLEND);
   
-  
-  programSetup();
-  bufferSetup();
-  drawScene();
+  return gl;
 }
 
 
-// not sure what this is
-GlProgram program;
-
-void programSetup() {
+GlProgram programSetup(RenderingContext gl) {
   var fragmentShader = '''
       precision mediump float;
 
@@ -66,15 +73,14 @@ void programSetup() {
       }
       ''';
   
-  program = new GlProgram(gl, fragmentShader, vertexShader, ['aVertexPosition'], ['uMVMatrix', 'uPMatrix']);
-  gl.useProgram(program.program);
+  return new GlProgram(gl, fragmentShader, vertexShader, ['aVertexPosition'], ['uMVMatrix', 'uPMatrix']);
 }
 
 
 // the main buffer(s)
 Buffer innerVertexPosBuffer, outerVertexPosBuffer;
 
-void bufferSetup() {
+void bufferSetup(RenderingContext gl) {
   var x = cos(PI/3);
   var y = sin(PI/3);
   var h = 2 * y;
@@ -115,27 +121,17 @@ void bufferSetup() {
       STATIC_DRAW);
   }
 
-
-
 /// Perspective matrix
 Matrix4 pMatrix;
 /// Model-View matrix.
 Matrix4 mvMatrix;
 List<Matrix4> mvStack = new List<Matrix4>();
 
-/**
- * Add a copy of the current Model-View matrix to the the stack for future
- * restoration.
- */
+// fat stacks
 mvPushMatrix() => mvStack.add(new Matrix4.fromMatrix(mvMatrix));
-
-/**
- * Pop the last matrix off the stack and set the Model View matrix.
- */
 mvPopMatrix() => mvMatrix = mvStack.removeLast();
 
-
-void drawScene() {
+void drawScene(CanvasElement canvas, RenderingContext gl, GlProgram prog) {
   // webgl documentation says "clear buffers to preset values"
   // "glClear sets the bitplane area of the window to values previously selected"
   // TODO: figure out what a bitplane is
@@ -152,23 +148,20 @@ void drawScene() {
   // Here's that bindBuffer() again, as seen in the constructor
   gl.bindBuffer(ARRAY_BUFFER, outerVertexPosBuffer);
   // Set the vertex attribute to the size of each individual element (x,y,z)
-  gl.vertexAttribPointer(program.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
-  setMatrixUniforms();
+  gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
+  gl.uniformMatrix4fv(prog.uniforms['uPMatrix'], false, pMatrix.buf);
+  gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, mvMatrix.buf);
   // Now draw 3 vertices
   gl.drawArrays(LINES, 0, 6);
   
   
   gl.bindBuffer(ARRAY_BUFFER, innerVertexPosBuffer);
-  gl.vertexAttribPointer(program.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
-  setMatrixUniforms();
+  gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
+  gl.uniformMatrix4fv(prog.uniforms['uPMatrix'], false, pMatrix.buf);
+  gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, mvMatrix.buf);
   gl.drawArrays(LINES, 0, 6);
   
   
 // Finally, reset the matrix back to what it was before we moved around.
   mvPopMatrix();
-}
-
-setMatrixUniforms() {
-  gl.uniformMatrix4fv(program.uniforms['uPMatrix'], false, pMatrix.buf);
-  gl.uniformMatrix4fv(program.uniforms['uMVMatrix'], false, mvMatrix.buf);
 }
