@@ -58,7 +58,7 @@ GlProgram programSetup(RenderingContext gl) {
       precision mediump float;
 
       void main(void) {
-      gl_FragColor = vec4(0.8, 0.0, 1.0, 1.0);
+      gl_FragColor = vec4(0.85, 0.0, 1.0, 1.0);
       }
       ''';
   
@@ -80,7 +80,20 @@ GlProgram programSetup(RenderingContext gl) {
 // the main buffer(s)
 Buffer gridPointsPosBuffer, gridPointsIndexBuffer;
 
-void bufferSetup(RenderingContext gl) {
+List<double> genGridPointList() {
+  /*
+   *  Please examine this terrible ASCII triangle to become confused. These are the
+   *  indices of grid points generated
+   * 
+   *         8
+   *         .
+   *     9_ / \ _7
+   *   10_ /   \ _6
+   *  11_ /     \ _5
+   *     /_._._._\
+   *    0  1 2 3  4
+   */
+  
   double x = cos(PI/3);
   double y = sin(PI/3);
 
@@ -94,7 +107,9 @@ void bufferSetup(RenderingContext gl) {
   
   scaleV (xs, c) => [c * xs[0], c * xs[1], c * xs[2]];
 
+  // we'll return this later
   List<double> a = new List();
+  
   for(var i = 0; i < 5; i++) {
     var x = scaleV(u1, i * 1.0);
     a..add(x[0])..add(x[1])..add(x[2]);
@@ -110,7 +125,11 @@ void bufferSetup(RenderingContext gl) {
     a..add(2.0 + x[0])..add(2.0 * sqrt(3) + x[1])..add(x[2]);
   }
   
-  print(a);
+  return a;
+}
+
+void bufferSetup(RenderingContext gl) {
+  var a = genGridPointList();
   
   gridPointsPosBuffer = gl.createBuffer();
   gl.bindBuffer(ARRAY_BUFFER, gridPointsPosBuffer);
@@ -123,24 +142,19 @@ void bufferSetup(RenderingContext gl) {
 
   // I'm also not sure what STATIC_DRAW is and how it compares to other options!
   
-  
   gridPointsIndexBuffer = gl.createBuffer();
   gl.bindBuffer(ELEMENT_ARRAY_BUFFER, gridPointsIndexBuffer);
   
-  // This array defines each face as two triangles, using the
-  // indices into the vertex array to specify each triangle's
-  // position.
-  
   var gridPointsIndices = [0, 4, 4, 8, 8, 0, // outer vertices of triangle
-      1, 7,  1, 11,
-      2, 6,  2, 10,
-      3, 5,  3, 9,
+      1, 7,  1, 11, // lines involving 1
+      2, 6,  2, 10, // lines involving 2
+      3, 5,  3, 9,  // lines involving 3
       5, 11,
       6, 10,
       7, 9];
   
   // Now send the element array to GL
-  gl.bufferDataTyped(ELEMENT_ARRAY_BUFFER,
+  gl.bufferDataTyped(ELEMENT_ARRAY_BUFFER, 
       new Uint16List.fromList(gridPointsIndices), STATIC_DRAW);
     
   }
@@ -168,22 +182,12 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   mvPushMatrix();
 
   mvMatrix.translate([-2, -1.5, -6.0]);
-  
 
   // Here's that bindBuffer() again, as seen in the constructor
   gl.bindBuffer(ARRAY_BUFFER, gridPointsPosBuffer);
   // Set the vertex attribute to the size of each individual element (x,y,z)
   gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
-  
-  /*
-  
-  gl.bindBuffer(ARRAY_BUFFER, innerVertexPosBuffer);
-  gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
-  gl.uniformMatrix4fv(prog.uniforms['uPMatrix'], false, pMatrix.buf);
-  gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, mvMatrix.buf);
-  gl.drawArrays(LINES, 0, 6);
-  
-  */
+ 
   
   gl.bindBuffer(ELEMENT_ARRAY_BUFFER, gridPointsIndexBuffer);
   gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
