@@ -78,7 +78,7 @@ GlProgram programSetup(RenderingContext gl) {
 
 
 // the main buffer(s)
-Buffer innerVertexPosBuffer, outerVertexPosBuffer;
+Buffer gridPointsPosBuffer, gridPointsIndexBuffer;
 
 void bufferSetup(RenderingContext gl) {
   double x = cos(PI/3);
@@ -112,28 +112,9 @@ void bufferSetup(RenderingContext gl) {
   
   print(a);
   
-  
-  var h = 2 * y;
-  
-  
-  var b = [2.0,  0.0, 0.0];
-  var c = [1.0,  h, 0.0];
-  var d = [1.0, 0.0, 0.0]; // between a & b
-  var e = [2.0 - x, y, 0.0]; // between b & c
-  var f = [x, y, 0.0]; // between c & a
-  
-  var z = a.getRange(0, 3);
-  
-  var outer = new List.from(z);
-  var inner = new List.from(d);
-
-  outer..addAll(b)
-    ..addAll(b)..addAll(c)
-    ..addAll(c)..addAll(z);
-  
-  inner..addAll(e)
-    ..addAll(e)..addAll(f)
-    ..addAll(f)..addAll(d);
+  gridPointsPosBuffer = gl.createBuffer();
+  gl.bindBuffer(ARRAY_BUFFER, gridPointsPosBuffer);
+  gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(a), STATIC_DRAW);
   
   // I think there's a notion of a "current" array buffer, whatever an array buffer is
   // and all buffer operations to array buffers apply only to the current one?
@@ -142,16 +123,26 @@ void bufferSetup(RenderingContext gl) {
 
   // I'm also not sure what STATIC_DRAW is and how it compares to other options!
   
-  outerVertexPosBuffer = gl.createBuffer();
-  gl.bindBuffer(ARRAY_BUFFER, outerVertexPosBuffer);
-  gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(outer),
-      STATIC_DRAW);
   
+  gridPointsIndexBuffer = gl.createBuffer();
+  gl.bindBuffer(ELEMENT_ARRAY_BUFFER, gridPointsIndexBuffer);
   
-  innerVertexPosBuffer = gl.createBuffer();
-  gl.bindBuffer(ARRAY_BUFFER, innerVertexPosBuffer);
-  gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(inner),
-      STATIC_DRAW);
+  // This array defines each face as two triangles, using the
+  // indices into the vertex array to specify each triangle's
+  // position.
+  
+  var gridPointsIndices = [0, 4, 4, 8, 8, 0, // outer vertices of triangle
+      1, 7,  1, 11,
+      2, 6,  2, 10,
+      3, 5,  3, 9,
+      5, 11,
+      6, 10,
+      7, 9];
+  
+  // Now send the element array to GL
+  gl.bufferDataTyped(ELEMENT_ARRAY_BUFFER,
+      new Uint16List.fromList(gridPointsIndices), STATIC_DRAW);
+    
   }
 
 /// Perspective matrix
@@ -176,17 +167,15 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   // First stash the current model view matrix before we start moving around.
   mvPushMatrix();
 
-  mvMatrix.translate([-1.0, -1.0, -4.0]);
+  mvMatrix.translate([-2, -1.5, -6.0]);
+  
 
   // Here's that bindBuffer() again, as seen in the constructor
-  gl.bindBuffer(ARRAY_BUFFER, outerVertexPosBuffer);
+  gl.bindBuffer(ARRAY_BUFFER, gridPointsPosBuffer);
   // Set the vertex attribute to the size of each individual element (x,y,z)
   gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
-  gl.uniformMatrix4fv(prog.uniforms['uPMatrix'], false, pMatrix.buf);
-  gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, mvMatrix.buf);
-  // Now draw 3 vertices
-  gl.drawArrays(LINES, 0, 6);
   
+  /*
   
   gl.bindBuffer(ARRAY_BUFFER, innerVertexPosBuffer);
   gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
@@ -194,6 +183,14 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, mvMatrix.buf);
   gl.drawArrays(LINES, 0, 6);
   
+  */
+  
+  gl.bindBuffer(ELEMENT_ARRAY_BUFFER, gridPointsIndexBuffer);
+  gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
+  gl.uniformMatrix4fv(prog.uniforms['uPMatrix'], false, pMatrix.buf);
+  gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, mvMatrix.buf);
+  gl.drawElements(LINES, 24, UNSIGNED_SHORT, 0);
+
   
 // Finally, reset the matrix back to what it was before we moved around.
   mvPopMatrix();
