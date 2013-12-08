@@ -29,7 +29,7 @@ void main() {
   gl.useProgram(p.program);
   
   bufferSetup(gl);
-  drawScene(canvas, gl, p);
+  drawScene(gl, p, canvas.width / canvas.height);
 }
 
 RenderingContext glContextSetup(CanvasElement canvas) {
@@ -131,14 +131,14 @@ List<Matrix4> mvStack = new List<Matrix4>();
 mvPushMatrix() => mvStack.add(new Matrix4.fromMatrix(mvMatrix));
 mvPopMatrix() => mvMatrix = mvStack.removeLast();
 
-void drawScene(CanvasElement canvas, RenderingContext gl, GlProgram prog) {
+void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   // webgl documentation says "clear buffers to preset values"
   // "glClear sets the bitplane area of the window to values previously selected"
   // TODO: figure out what a bitplane is
   gl.clear(COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT);
   
   // something something field of view is 45 degrees. the last 2 are something to do with depth.
-  pMatrix = Matrix4.perspective(45.0, canvas.width / canvas.height, 0.1, 100.0);
+  pMatrix = Matrix4.perspective(45.0, aspect, 0.1, 100.0);
   
   // First stash the current model view matrix before we start moving around.
   mvPushMatrix();
