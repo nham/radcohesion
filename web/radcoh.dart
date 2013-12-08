@@ -81,22 +81,55 @@ GlProgram programSetup(RenderingContext gl) {
 Buffer innerVertexPosBuffer, outerVertexPosBuffer;
 
 void bufferSetup(RenderingContext gl) {
-  var x = cos(PI/3);
-  var y = sin(PI/3);
+  double x = cos(PI/3);
+  double y = sin(PI/3);
+
+  // all vectors referenced from the leftmost point
+  // we aren't using Vector3 because it internally uses Float32List, which is a
+  // fixed length list, and I'm not sure how to do what I need to do with that.
+  
+  List<double> u1 = [1.0, 0.0, 0.0]; // from the leftmost going to rightmost
+  List<double> u2 = [ -x,   y, 0.0]; // from the rightmost going to topmost
+  List<double> u3 = [ -x,  -y, 0.0]; // from the topmost going to leftmost
+  
+  scaleV (xs, c) => [c * xs[0], c * xs[1], c * xs[2]];
+
+  List<double> a = new List();
+  for(var i = 0; i < 5; i++) {
+    var x = scaleV(u1, i * 1.0);
+    a..add(x[0])..add(x[1])..add(x[2]);
+  }
+  
+  for(var i = 1; i < 5; i++) {
+    var x = scaleV(u2, i * 1.0);
+    a..add(4.0 + x[0])..add(x[1])..add(x[2]);
+  }
+  
+  for(var i = 1; i < 4; i++) {
+    var x = scaleV(u3, i * 1.0);
+    a..add(2.0 + x[0])..add(2.0 * sqrt(3) + x[1])..add(x[2]);
+  }
+  
+  print(a);
+  
+  
   var h = 2 * y;
-  var a = [0.0, 0.0, 0.0];
+  
+  
   var b = [2.0,  0.0, 0.0];
   var c = [1.0,  h, 0.0];
   var d = [1.0, 0.0, 0.0]; // between a & b
   var e = [2.0 - x, y, 0.0]; // between b & c
   var f = [x, y, 0.0]; // between c & a
   
-  var outer = new List.from(a);
+  var z = a.getRange(0, 3);
+  
+  var outer = new List.from(z);
   var inner = new List.from(d);
 
   outer..addAll(b)
     ..addAll(b)..addAll(c)
-    ..addAll(c)..addAll(a);
+    ..addAll(c)..addAll(z);
   
   inner..addAll(e)
     ..addAll(e)..addAll(f)
