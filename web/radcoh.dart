@@ -39,7 +39,7 @@ RenderingContext glContextSetup(CanvasElement canvas) {
     throw "There's no 3d WebGL thingy. Whatever that is. Barf.";
   }
   
-  gl.clearColor(1.0, 0.95, 0.0, 1.0);
+  gl.clearColor(0.08, 0.0, 0.0, 1.0);
   gl.clearDepth(1.0);
   
   // set the GL viewport to the same size as the canvas element so there's no resizing
@@ -54,31 +54,36 @@ RenderingContext glContextSetup(CanvasElement canvas) {
 
 
 GlProgram programSetup(RenderingContext gl) {
+  // Old color: vec4(0.85, 0.0, 1.0, 1.0);
   var fragmentShader = '''
       precision mediump float;
+      varying lowp vec4 vColor;
 
       void main(void) {
-      gl_FragColor = vec4(0.85, 0.0, 1.0, 1.0);
+      gl_FragColor = vColor;
       }
       ''';
   
   var vertexShader = '''
       attribute vec3 aVertexPosition;
+      attribute vec4 aVertexColor;
 
       uniform mat4 uMVMatrix;
       uniform mat4 uPMatrix;
 
+      varying lowp vec4 vColor;
+
       void main(void) {
-      gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-      }
-      ''';
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        vColor = aVertexColor;
+      }''';
   
-  return new GlProgram(gl, fragmentShader, vertexShader, ['aVertexPosition'], ['uMVMatrix', 'uPMatrix']);
+  return new GlProgram(gl, fragmentShader, vertexShader, ['aVertexPosition', 'aVertexColor'], ['uMVMatrix', 'uPMatrix']);
 }
 
 
 // the main buffer(s)
-Buffer gridPointsPosBuffer, gridPointsIndexBuffer;
+Buffer gridPointsPosBuffer, gridPointsIndexBuffer, gridPointsColorBuffer;//gridShapeIndexBuffer;
 
 List<double> genGridPointList() {
   /*
@@ -149,7 +154,6 @@ void bufferSetup(RenderingContext gl) {
   gridPointsPosBuffer = gl.createBuffer();
   gl.bindBuffer(ARRAY_BUFFER, gridPointsPosBuffer);
   gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(a), STATIC_DRAW);
-
   
   gridPointsIndexBuffer = gl.createBuffer();
   gl.bindBuffer(ELEMENT_ARRAY_BUFFER, gridPointsIndexBuffer);
@@ -165,8 +169,35 @@ void bufferSetup(RenderingContext gl) {
   // Now send the element array to GL
   gl.bufferDataTyped(ELEMENT_ARRAY_BUFFER, 
       new Uint16List.fromList(gridPointsIndices), STATIC_DRAW);
-    
-  }
+  
+
+  var colors = [1.0,  1.0,  1.0,  1.0,    // notblack
+                1.0,  0.0,  0.0,  1.0,    // red
+                1.0,  0.0,  0.0,  1.0,    // red
+                1.0,  0.0,  0.0,  1.0,    // red
+                1.0,  1.0,  1.0,  1.0,    // notblack
+                0.0,  1.0,  0.0,  1.0,    // green
+                0.0,  1.0,  0.0,  1.0,    // green
+                0.0,  1.0,  0.0,  1.0,    // green
+                1.0,  1.0,  1.0,  1.0,    // notblack
+                0.0,  0.0,  1.0,  1.0,    // blue
+                0.0,  0.0,  1.0,  1.0,    // blue
+                0.0,  0.0,  1.0,  1.0     // blue
+                ];
+  
+  print("lens: ${a.length}, ${colors.length}");
+  gridPointsColorBuffer = gl.createBuffer();
+  gl.bindBuffer(ARRAY_BUFFER, gridPointsColorBuffer);
+  gl.bufferData(ARRAY_BUFFER, new Float32List.fromList(colors), STATIC_DRAW);
+
+  
+  /*
+  gridShapeIndexBuffer = gl.createBuffer();
+  gl.bindBuffer(ARRAY_BUFFER, gridShapeIndexBuffer);
+  gl.bufferDataTyped(ELEMENT_ARRAY_BUFFER, 
+      new Uint16List.fromList([0,4,8]), STATIC_DRAW);
+  */
+}
 
 /// Perspective matrix
 Matrix4 pMatrix;
@@ -192,14 +223,17 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
 
   mvMatrix.translate([-2, -1.5, -6.0]);
 
-  // Here's that bindBuffer() again, as seen in the constructor
   gl.bindBuffer(ARRAY_BUFFER, gridPointsPosBuffer);
   // Set the vertex attribute to the size of each individual element (x,y,z)
   gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
- 
   
   gl.bindBuffer(ELEMENT_ARRAY_BUFFER, gridPointsIndexBuffer);
   gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
+
+  gl.bindBuffer(ARRAY_BUFFER, gridPointsColorBuffer);
+  gl.vertexAttribPointer(prog.attributes['aVertexColor'], 4, FLOAT, false, 0, 0);
+  
+  
   gl.uniformMatrix4fv(prog.uniforms['uPMatrix'], false, pMatrix.buf);
   gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, mvMatrix.buf);
   gl.drawElements(LINES, 24, UNSIGNED_SHORT, 0);
