@@ -2144,9 +2144,6 @@ SvgSvgElement: {"": "GraphicsElement;height=,width=", "%": "SVGSVGElement"},
 UseElement: {"": "GraphicsElement;height=,width=", "%": "SVGUseElement"}}],
 ["dart.dom.web_gl", "dart:web_gl", , P, {
 RenderingContext: {"": "CanvasRenderingContext;",
-  attachShader$2: function(receiver, program, shader) {
-    return receiver.attachShader(program, shader);
-  },
   bindBuffer$2: function(receiver, target, buffer) {
     return receiver.bindBuffer(target, buffer);
   },
@@ -2159,14 +2156,11 @@ RenderingContext: {"": "CanvasRenderingContext;",
   clearColor$4: function(receiver, red, green, blue, alpha) {
     return receiver.clearColor(red, green, blue, alpha);
   },
-  compileShader$1: function(receiver, shader) {
-    return receiver.compileShader(shader);
+  clearDepth$1: function(receiver, depth) {
+    return receiver.clearDepth(depth);
   },
   createBuffer$0: function(receiver) {
     return receiver.createBuffer();
-  },
-  createProgram$0: function(receiver) {
-    return receiver.createProgram();
   },
   createShader$1: function(receiver, type) {
     return receiver.createShader(type);
@@ -2179,24 +2173,6 @@ RenderingContext: {"": "CanvasRenderingContext;",
   },
   enable$1: function(receiver, cap) {
     return receiver.enable(cap);
-  },
-  enableVertexAttribArray$1: function(receiver, index) {
-    return receiver.enableVertexAttribArray(index);
-  },
-  getAttribLocation$2: function(receiver, program, $name) {
-    return receiver.getAttribLocation(program, $name);
-  },
-  getProgramParameter$2: function(receiver, program, pname) {
-    return receiver.getProgramParameter(program, pname);
-  },
-  getUniformLocation$2: function(receiver, program, $name) {
-    return receiver.getUniformLocation(program, $name);
-  },
-  linkProgram$1: function(receiver, program) {
-    return receiver.linkProgram(program);
-  },
-  shaderSource$2: function(receiver, shader, string) {
-    return receiver.shaderSource(shader, string);
   },
   uniformMatrix4fv$3: function(receiver, $location, transpose, array) {
     return receiver.uniformMatrix4fv($location, transpose, array);
@@ -2254,25 +2230,39 @@ convertDartToNative_Dictionary_closure: {"": "Closure;object_0",
 }}],
 ["rad_cohesion", "radcoh.dart", , E, {
 main: function() {
-  var t1 = new Float32Array(16);
+  var t1, t2, t3;
+  t1 = new Float32Array(16);
   t1.$dartCachedLength = t1.length;
   t1 = new E.Matrix4(t1);
   t1.identity$0();
   $.mvMatrix = t1;
   $.canvas = document.querySelector("#the-haps");
   $.gl = J.getContext3d$0$x($.canvas);
-  if ($.gl == null) {
+  t1 = $.gl;
+  if (t1 == null) {
     P.print("There's no 3d WebGL thingy. Whatever that is. Barf.");
     return;
   }
-  E.thingySetup();
+  J.clearColor$4$x(t1, 0, 0.15, 0.05, 1);
+  J.clearDepth$1$x($.gl, 1);
+  t1 = $.gl;
+  t2 = $.canvas;
+  t3 = J.getInterceptor$x(t2);
+  J.viewport$4$x(t1, 0, 0, t3.get$width(t2), t3.get$height(t2));
+  J.enable$1$x($.gl, 2929);
+  J.disable$1$x($.gl, 3042);
+  E.programSetup();
+  E.bufferSetup();
   E.drawScene();
 },
 
-thingySetup: function() {
-  var x, y, a, b, c, d, e, f, outer, inner, t1, t2;
-  $.program = E.GlProgram$("      precision mediump float;\n\n      void main(void) {\n      gl_FragColor = vec4(0.8, 0.0, 1.0, 1.0);\n      }\n      ", "      attribute vec3 aVertexPosition;\n\n      uniform mat4 uMVMatrix;\n      uniform mat4 uPMatrix;\n\n      void main(void) {\n      gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);\n      }\n      ", ["aVertexPosition"], ["uMVMatrix", "uPMatrix"]);
+programSetup: function() {
+  $.program = E.GlProgram$($.gl, "      precision mediump float;\n\n      void main(void) {\n      gl_FragColor = vec4(0.8, 0.0, 1.0, 1.0);\n      }\n      ", "      attribute vec3 aVertexPosition;\n\n      uniform mat4 uMVMatrix;\n      uniform mat4 uPMatrix;\n\n      void main(void) {\n      gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);\n      }\n      ", ["aVertexPosition"], ["uMVMatrix", "uPMatrix"]);
   J.useProgram$1$x($.gl, $.program.program);
+},
+
+bufferSetup: function() {
+  var x, y, a, b, c, d, e, f, outer, inner, t1, t2;
   x = Math.cos(1.0471975511965976);
   y = Math.sin(1.0471975511965976);
   a = [0, 0, 0];
@@ -2305,49 +2295,42 @@ thingySetup: function() {
   t1 = new Float32Array(inner);
   t1.$dartCachedLength = t1.length;
   J.bufferDataTyped$3$x(t2, 34962, t1, 35044);
-  J.clearColor$4$x($.gl, 0, 0.1, 0, 1);
 },
 
 drawScene: function() {
   var t1, t2, t3;
-  t1 = $.gl;
-  t2 = $.canvas;
-  t3 = J.getInterceptor$x(t2);
-  J.viewport$4$x(t1, 0, 0, t3.get$width(t2), t3.get$height(t2));
   J.clear$1$ax($.gl, 16640);
-  J.enable$1$x($.gl, 2929);
-  J.disable$1$x($.gl, 3042);
-  t2 = $.canvas;
-  t3 = J.getInterceptor$x(t2);
-  t1 = t3.get$width(t2);
-  t2 = t3.get$height(t2);
+  t1 = $.canvas;
+  t2 = J.getInterceptor$x(t1);
+  t3 = t2.get$width(t1);
+  t1 = t2.get$height(t1);
+  if (typeof t3 !== "number")
+    throw t3.$div();
   if (typeof t1 !== "number")
-    throw t1.$div();
-  if (typeof t2 !== "number")
-    throw H.iae(t2);
-  $.pMatrix = E.Matrix4_perspective(45, t1 / t2, 0.1, 100);
-  t2 = $.get$mvStack();
-  t1 = new Float32Array($.mvMatrix.buf);
-  t1.$dartCachedLength = t1.length;
-  t2.push(new E.Matrix4(t1));
-  t1 = $.mvMatrix;
-  t1.translate$1(t1, [-1, -1, -4]);
+    throw H.iae(t1);
+  $.pMatrix = E.Matrix4_perspective(45, t3 / t1, 0.1, 100);
+  t1 = $.get$mvStack();
+  t3 = new Float32Array($.mvMatrix.buf);
+  t3.$dartCachedLength = t3.length;
+  t1.push(new E.Matrix4(t3));
+  t3 = $.mvMatrix;
+  t3.translate$1(t3, [-1, -1, -4]);
   J.bindBuffer$2$x($.gl, 34962, $.outerVertexPosBuffer);
-  t1 = $.gl;
-  t2 = $.program.attributes;
-  J.vertexAttribPointer$6$x(t1, t2.$index(t2, "aVertexPosition"), 3, 5126, false, 0, 0);
+  t3 = $.gl;
+  t1 = $.program.attributes;
+  J.vertexAttribPointer$6$x(t3, t1.$index(t1, "aVertexPosition"), 3, 5126, false, 0, 0);
   E.setMatrixUniforms();
   J.drawArrays$3$x($.gl, 1, 0, 6);
   J.bindBuffer$2$x($.gl, 34962, $.innerVertexPosBuffer);
-  t2 = $.gl;
-  t1 = $.program.attributes;
-  J.vertexAttribPointer$6$x(t2, t1.$index(t1, "aVertexPosition"), 3, 5126, false, 0, 0);
+  t1 = $.gl;
+  t3 = $.program.attributes;
+  J.vertexAttribPointer$6$x(t1, t3.$index(t3, "aVertexPosition"), 3, 5126, false, 0, 0);
   E.setMatrixUniforms();
   J.drawArrays$3$x($.gl, 1, 0, 6);
-  t1 = $.get$mvStack();
-  if (0 >= t1.length)
-    throw H.ioore(t1, 0);
-  $.mvMatrix = t1.pop();
+  t3 = $.get$mvStack();
+  if (0 >= t3.length)
+    throw H.ioore(t3, 0);
+  $.mvMatrix = t3.pop();
 },
 
 setMatrixUniforms: function() {
@@ -2360,36 +2343,36 @@ setMatrixUniforms: function() {
   J.uniformMatrix4fv$3$x(t2, t1.$index(t1, "uMVMatrix"), false, $.mvMatrix.buf);
 },
 
-GlProgram: {"": "Object;attributes,uniforms,program,fragShader,vertShader",
-  GlProgram$4: function(fragSrc, vertSrc, attributeNames, uniformNames) {
+GlProgram: {"": "Object;attributes,uniforms,program,fragShader,vertShader,gl",
+  GlProgram$5: function(gl, fragSrc, vertSrc, attributeNames, uniformNames) {
     var t1, t2, attrib, attributeLocation, uniform;
-    this.fragShader = J.createShader$1$x($.gl, 35632);
-    J.shaderSource$2$x($.gl, this.fragShader, fragSrc);
-    J.compileShader$1$x($.gl, this.fragShader);
-    this.vertShader = J.createShader$1$x($.gl, 35633);
-    J.shaderSource$2$x($.gl, this.vertShader, vertSrc);
-    J.compileShader$1$x($.gl, this.vertShader);
-    this.program = J.createProgram$0$x($.gl);
-    J.attachShader$2$x($.gl, this.program, this.vertShader);
-    J.attachShader$2$x($.gl, this.program, this.fragShader);
-    J.linkProgram$1$x($.gl, this.program);
-    if (J.getProgramParameter$2$x($.gl, this.program, 35714) !== true)
+    this.fragShader = J.createShader$1$x(gl, 35632);
+    gl.shaderSource(this.fragShader, fragSrc);
+    gl.compileShader(this.fragShader);
+    this.vertShader = gl.createShader(35633);
+    gl.shaderSource(this.vertShader, vertSrc);
+    gl.compileShader(this.vertShader);
+    this.program = gl.createProgram();
+    gl.attachShader(this.program, this.vertShader);
+    gl.attachShader(this.program, this.fragShader);
+    gl.linkProgram(this.program);
+    if (gl.getProgramParameter(this.program, 35714) !== true)
       P.print("Could not initialise shaders");
     for (t1 = new H.ListIterator(attributeNames, 1, 0, null), t2 = this.attributes; t1.moveNext$0();) {
       attrib = t1._current;
-      attributeLocation = J.getAttribLocation$2$x($.gl, this.program, attrib);
-      J.enableVertexAttribArray$1$x($.gl, attributeLocation);
+      attributeLocation = gl.getAttribLocation(this.program, attrib);
+      gl.enableVertexAttribArray(attributeLocation);
       t2.$indexSet(t2, attrib, attributeLocation);
     }
     for (t1 = new H.ListIterator(uniformNames, 2, 0, null), t2 = this.uniforms; t1.moveNext$0();) {
       uniform = t1._current;
-      t2.$indexSet(t2, uniform, J.getUniformLocation$2$x($.gl, this.program, uniform));
+      t2.$indexSet(t2, uniform, gl.getUniformLocation(this.program, uniform));
     }
   },
   static: {
-GlProgram$: function(fragSrc, vertSrc, attributeNames, uniformNames) {
-  var t1 = new E.GlProgram(P.LinkedHashMap_LinkedHashMap(null, null, null, J.JSString, J.JSInt), P.LinkedHashMap_LinkedHashMap(null, null, null, J.JSString, P.UniformLocation), null, null, null);
-  t1.GlProgram$4(fragSrc, vertSrc, attributeNames, uniformNames);
+GlProgram$: function(gl, fragSrc, vertSrc, attributeNames, uniformNames) {
+  var t1 = new E.GlProgram(P.LinkedHashMap_LinkedHashMap(null, null, null, J.JSString, J.JSInt), P.LinkedHashMap_LinkedHashMap(null, null, null, J.JSString, P.UniformLocation), null, null, null, null);
+  t1.GlProgram$5(gl, fragSrc, vertSrc, attributeNames, uniformNames);
   return t1;
 }}
 
@@ -2766,9 +2749,9 @@ $.Device__isOpera = null;
 $.Device__isWebKit = null;
 $.canvas = null;
 $.gl = null;
+$.program = null;
 $.innerVertexPosBuffer = null;
 $.outerVertexPosBuffer = null;
-$.program = null;
 $.pMatrix = null;
 $.mvMatrix = null;
 J.$eq = function(receiver, a0) {
@@ -2784,9 +2767,6 @@ J.$index$asx = function(receiver, a0) {
       return receiver[a0];
   return J.getInterceptor$asx(receiver).$index(receiver, a0);
 };
-J.attachShader$2$x = function(receiver, a0, a1) {
-  return J.getInterceptor$x(receiver).attachShader$2(receiver, a0, a1);
-};
 J.bindBuffer$2$x = function(receiver, a0, a1) {
   return J.getInterceptor$x(receiver).bindBuffer$2(receiver, a0, a1);
 };
@@ -2799,14 +2779,11 @@ J.clear$1$ax = function(receiver, a0) {
 J.clearColor$4$x = function(receiver, a0, a1, a2, a3) {
   return J.getInterceptor$x(receiver).clearColor$4(receiver, a0, a1, a2, a3);
 };
-J.compileShader$1$x = function(receiver, a0) {
-  return J.getInterceptor$x(receiver).compileShader$1(receiver, a0);
+J.clearDepth$1$x = function(receiver, a0) {
+  return J.getInterceptor$x(receiver).clearDepth$1(receiver, a0);
 };
 J.createBuffer$0$x = function(receiver) {
   return J.getInterceptor$x(receiver).createBuffer$0(receiver);
-};
-J.createProgram$0$x = function(receiver) {
-  return J.getInterceptor$x(receiver).createProgram$0(receiver);
 };
 J.createShader$1$x = function(receiver, a0) {
   return J.getInterceptor$x(receiver).createShader$1(receiver, a0);
@@ -2820,9 +2797,6 @@ J.drawArrays$3$x = function(receiver, a0, a1, a2) {
 J.enable$1$x = function(receiver, a0) {
   return J.getInterceptor$x(receiver).enable$1(receiver, a0);
 };
-J.enableVertexAttribArray$1$x = function(receiver, a0) {
-  return J.getInterceptor$x(receiver).enableVertexAttribArray$1(receiver, a0);
-};
 J.forEach$1$ax = function(receiver, a0) {
   return J.getInterceptor$ax(receiver).forEach$1(receiver, a0);
 };
@@ -2835,23 +2809,8 @@ J.get$iterator$ax = function(receiver) {
 J.get$length$asx = function(receiver) {
   return J.getInterceptor$asx(receiver).get$length(receiver);
 };
-J.getAttribLocation$2$x = function(receiver, a0, a1) {
-  return J.getInterceptor$x(receiver).getAttribLocation$2(receiver, a0, a1);
-};
 J.getContext3d$0$x = function(receiver) {
   return J.getInterceptor$x(receiver).getContext3d$0(receiver);
-};
-J.getProgramParameter$2$x = function(receiver, a0, a1) {
-  return J.getInterceptor$x(receiver).getProgramParameter$2(receiver, a0, a1);
-};
-J.getUniformLocation$2$x = function(receiver, a0, a1) {
-  return J.getInterceptor$x(receiver).getUniformLocation$2(receiver, a0, a1);
-};
-J.linkProgram$1$x = function(receiver, a0) {
-  return J.getInterceptor$x(receiver).linkProgram$1(receiver, a0);
-};
-J.shaderSource$2$x = function(receiver, a0, a1) {
-  return J.getInterceptor$x(receiver).shaderSource$2(receiver, a0, a1);
 };
 J.toString$0 = function(receiver) {
   return J.getInterceptor(receiver).toString$0(receiver);

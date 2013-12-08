@@ -24,8 +24,10 @@ class GlProgram {
   Program program;
 
   Shader fragShader, vertShader;
+  
+  RenderingContext gl;
 
-  GlProgram(String fragSrc, String vertSrc, List<String> attributeNames,
+  GlProgram(RenderingContext gl, String fragSrc, String vertSrc, List<String> attributeNames,
       List<String> uniformNames) {
     fragShader = gl.createShader(FRAGMENT_SHADER);
     gl.shaderSource(fragShader, fragSrc);
