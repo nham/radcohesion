@@ -11,22 +11,35 @@ part 'matrix4.dart';
 // not sure yet
 part 'gl_program.dart';
 
-// declare the main canvas Element and RenderingContext
-CanvasElement canvas;
-RenderingContext gl;
 
 
 void main() {
   mvMatrix = new Matrix4()..identity();
-  canvas = querySelector("#the-haps");
-  gl = canvas.getContext3d();
+  CanvasElement canvas = querySelector("#the-haps");
   
-  if(gl == null) {
-    print("There's no 3d WebGL thingy. Whatever that is. Barf.");
+  RenderingContext gl;
+  try {
+    gl = glContextSetup(canvas);
+  } catch(e) {
+    print(e);
     return;
   }
   
-  gl.clearColor(0.0, 0.15, 0.05, 1.0);
+  var p = programSetup(gl);
+  gl.useProgram(p.program);
+  
+  bufferSetup(gl);
+  drawScene(gl, p, canvas.width / canvas.height);
+}
+
+RenderingContext glContextSetup(CanvasElement canvas) {
+  RenderingContext gl = canvas.getContext3d();
+  
+  if(gl == null) {
+    throw "There's no 3d WebGL thingy. Whatever that is. Barf.";
+  }
+  
+  gl.clearColor(1.0, 0.95, 0.0, 1.0);
   gl.clearDepth(1.0);
   
   // set the GL viewport to the same size as the canvas element so there's no resizing
@@ -36,22 +49,16 @@ void main() {
   gl.enable(DEPTH_TEST);
   gl.disable(BLEND);
   
-  
-  programSetup();
-  bufferSetup();
-  drawScene();
+  return gl;
 }
 
 
-// not sure what this is
-GlProgram program;
-
-void programSetup() {
+GlProgram programSetup(RenderingContext gl) {
   var fragmentShader = '''
       precision mediump float;
 
       void main(void) {
-      gl_FragColor = vec4(0.8, 0.0, 1.0, 1.0);
+      gl_FragColor = vec4(0.85, 0.0, 1.0, 1.0);
       }
       ''';
   
@@ -66,35 +73,75 @@ void programSetup() {
       }
       ''';
   
-  program = new GlProgram(gl, fragmentShader, vertexShader, ['aVertexPosition'], ['uMVMatrix', 'uPMatrix']);
-  gl.useProgram(program.program);
+  return new GlProgram(gl, fragmentShader, vertexShader, ['aVertexPosition'], ['uMVMatrix', 'uPMatrix']);
 }
 
 
 // the main buffer(s)
-Buffer innerVertexPosBuffer, outerVertexPosBuffer;
+Buffer gridPointsPosBuffer, gridPointsIndexBuffer;
 
-void bufferSetup() {
-  var x = cos(PI/3);
-  var y = sin(PI/3);
-  var h = 2 * y;
-  var a = [0.0, 0.0, 0.0];
-  var b = [2.0,  0.0, 0.0];
-  var c = [1.0,  h, 0.0];
-  var d = [1.0, 0.0, 0.0]; // between a & b
-  var e = [2.0 - x, y, 0.0]; // between b & c
-  var f = [x, y, 0.0]; // between c & a
+List<double> genGridPointList() {
+  /*
+   *  Please examine this terrible ASCII triangle to become confused. These are the
+   *  indices of grid points generated
+   * 
+   *         8
+   *         .
+   *     9_ / \ _7
+   *   10_ /   \ _6
+   *  11_ /     \ _5
+   *     /_._._._\
+   *    0  1 2 3  4
+   */
   
-  var outer = new List.from(a);
-  var inner = new List.from(d);
+  double x = cos(PI/3);
+  double y = sin(PI/3);
 
-  outer..addAll(b)
-    ..addAll(b)..addAll(c)
-    ..addAll(c)..addAll(a);
+  // all vectors referenced from the leftmost point
+  // we aren't using Vector3 because it internally uses Float32List, which is a
+  // fixed length list, and I'm not sure how to do what I need to do with that.
   
-  inner..addAll(e)
-    ..addAll(e)..addAll(f)
-    ..addAll(f)..addAll(d);
+  List<double> u1 = [1.0, 0.0, 0.0]; // from the leftmost going to rightmost
+  List<double> u2 = [ -x,   y, 0.0]; // from the rightmost going to topmost
+  List<double> u3 = [ -x,  -y, 0.0]; // from the topmost going to leftmost
+  
+  scaleV (xs, c) => [c * xs[0], c * xs[1], c * xs[2]];
+
+  // we'll return this later
+  List<double> a = new List();
+  
+  for(var i = 0; i < 5; i++) {
+    var x = scaleV(u1, i * 1.0);
+    a..add(x[0])..add(x[1])..add(x[2]);
+  }
+  
+  List<double> rm = a.sublist(3*4, 3*5);
+
+  for(var i = 1; i < 5; i++) {
+    var x = scaleV(u2, i * 1.0);
+    a..add(rm[0] + x[0])
+     ..add(rm[1] + x[1])
+     ..add(rm[2] + x[2]);
+  }
+  
+  List<double> tm = a.sublist(3*8, 3*9); // topmost
+
+  for(var i = 1; i < 4; i++) {
+    var x = scaleV(u3, i * 1.0);
+    a..add(tm[0] + x[0])
+     ..add(tm[1] + x[1])
+     ..add(tm[2] + x[2]);
+  }
+  
+  return a;
+}
+
+void bufferSetup(RenderingContext gl) {
+  var a = genGridPointList();
+  
+  gridPointsPosBuffer = gl.createBuffer();
+  gl.bindBuffer(ARRAY_BUFFER, gridPointsPosBuffer);
+  gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(a), STATIC_DRAW);
   
   // I think there's a notion of a "current" array buffer, whatever an array buffer is
   // and all buffer operations to array buffers apply only to the current one?
@@ -103,19 +150,22 @@ void bufferSetup() {
 
   // I'm also not sure what STATIC_DRAW is and how it compares to other options!
   
-  outerVertexPosBuffer = gl.createBuffer();
-  gl.bindBuffer(ARRAY_BUFFER, outerVertexPosBuffer);
-  gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(outer),
-      STATIC_DRAW);
+  gridPointsIndexBuffer = gl.createBuffer();
+  gl.bindBuffer(ELEMENT_ARRAY_BUFFER, gridPointsIndexBuffer);
   
+  var gridPointsIndices = [0, 4, 4, 8, 8, 0, // outer vertices of triangle
+      1, 7,  1, 11, // lines involving 1
+      2, 6,  2, 10, // lines involving 2
+      3, 5,  3, 9,  // lines involving 3
+      5, 11,
+      6, 10,
+      7, 9];
   
-  innerVertexPosBuffer = gl.createBuffer();
-  gl.bindBuffer(ARRAY_BUFFER, innerVertexPosBuffer);
-  gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(inner),
-      STATIC_DRAW);
+  // Now send the element array to GL
+  gl.bufferDataTyped(ELEMENT_ARRAY_BUFFER, 
+      new Uint16List.fromList(gridPointsIndices), STATIC_DRAW);
+    
   }
-
-
 
 /// Perspective matrix
 Matrix4 pMatrix;
@@ -123,52 +173,37 @@ Matrix4 pMatrix;
 Matrix4 mvMatrix;
 List<Matrix4> mvStack = new List<Matrix4>();
 
-/**
- * Add a copy of the current Model-View matrix to the the stack for future
- * restoration.
- */
+// fat stacks
 mvPushMatrix() => mvStack.add(new Matrix4.fromMatrix(mvMatrix));
-
-/**
- * Pop the last matrix off the stack and set the Model View matrix.
- */
 mvPopMatrix() => mvMatrix = mvStack.removeLast();
 
-
-void drawScene() {
+void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   // webgl documentation says "clear buffers to preset values"
   // "glClear sets the bitplane area of the window to values previously selected"
   // TODO: figure out what a bitplane is
   gl.clear(COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT);
   
   // something something field of view is 45 degrees. the last 2 are something to do with depth.
-  pMatrix = Matrix4.perspective(45.0, canvas.width / canvas.height, 0.1, 100.0);
+  pMatrix = Matrix4.perspective(45.0, aspect, 0.1, 100.0);
   
   // First stash the current model view matrix before we start moving around.
   mvPushMatrix();
 
-  mvMatrix.translate([-1.0, -1.0, -4.0]);
+  mvMatrix.translate([-2, -1.5, -6.0]);
 
   // Here's that bindBuffer() again, as seen in the constructor
-  gl.bindBuffer(ARRAY_BUFFER, outerVertexPosBuffer);
+  gl.bindBuffer(ARRAY_BUFFER, gridPointsPosBuffer);
   // Set the vertex attribute to the size of each individual element (x,y,z)
-  gl.vertexAttribPointer(program.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
-  setMatrixUniforms();
-  // Now draw 3 vertices
-  gl.drawArrays(LINES, 0, 6);
+  gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
+ 
   
-  
-  gl.bindBuffer(ARRAY_BUFFER, innerVertexPosBuffer);
-  gl.vertexAttribPointer(program.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
-  setMatrixUniforms();
-  gl.drawArrays(LINES, 0, 6);
-  
+  gl.bindBuffer(ELEMENT_ARRAY_BUFFER, gridPointsIndexBuffer);
+  gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
+  gl.uniformMatrix4fv(prog.uniforms['uPMatrix'], false, pMatrix.buf);
+  gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, mvMatrix.buf);
+  gl.drawElements(LINES, 24, UNSIGNED_SHORT, 0);
+
   
 // Finally, reset the matrix back to what it was before we moved around.
   mvPopMatrix();
-}
-
-setMatrixUniforms() {
-  gl.uniformMatrix4fv(program.uniforms['uPMatrix'], false, pMatrix.buf);
-  gl.uniformMatrix4fv(program.uniforms['uMVMatrix'], false, mvMatrix.buf);
 }

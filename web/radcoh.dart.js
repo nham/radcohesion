@@ -204,7 +204,7 @@ Interceptor: {"": "Object;",
   toString$0: function(receiver) {
     return H.Primitives_objectToString(receiver);
   },
-  "%": "AutocompleteErrorEvent|DOMError|ErrorEvent|Event|FileError|MediaError|MediaKeyError|Navigator|NavigatorUserMediaError|PositionError|SQLError|SVGAnimatedLength|SVGRect|SpeechRecognitionError|WebGLBuffer|WebGLProgram|WebGLShader|WebGLUniformLocation"
+  "%": "AutocompleteErrorEvent|DOMError|ErrorEvent|Event|FileError|MediaError|MediaKeyError|Navigator|NavigatorUserMediaError|PositionError|SQLError|SVGAnimatedLength|SpeechRecognitionError|WebGLBuffer|WebGLProgram|WebGLShader|WebGLUniformLocation"
 },
 
 JSBool: {"": "bool/Interceptor;",
@@ -240,16 +240,6 @@ PlainJavaScriptObject: {"": "JavaScriptObject;"},
 UnknownJavaScriptObject: {"": "JavaScriptObject;"},
 
 JSArray: {"": "List/Interceptor;",
-  add$1: function(receiver, value) {
-    if (!!receiver.fixed$length)
-      H.throwExpression(P.UnsupportedError$("add"));
-    receiver.push(value);
-  },
-  addAll$1: function(receiver, collection) {
-    var t1;
-    for (t1 = new H.ListIterator(collection, collection.length, 0, null); t1.moveNext$0();)
-      this.add$1(receiver, t1._current);
-  },
   forEach$1: function(receiver, f) {
     return H.IterableMixinWorkaround_forEach(receiver, f);
   },
@@ -270,6 +260,15 @@ JSArray: {"": "List/Interceptor;",
       throw H.ioore(receiver, index);
     return receiver[index];
   },
+  sublist$2: function(receiver, start, end) {
+    if (start < 0 || start > receiver.length)
+      throw H.wrapException(P.RangeError$range(start, 0, receiver.length));
+    if (end < start || end > receiver.length)
+      throw H.wrapException(P.RangeError$range(end, start, receiver.length));
+    if (start === end)
+      return [];
+    return receiver.slice(start, end);
+  },
   toString$0: function(receiver) {
     return H.IterableMixinWorkaround_toStringIterable(receiver, "[", "]");
   },
@@ -282,6 +281,11 @@ JSArray: {"": "List/Interceptor;",
   get$length: function(receiver) {
     return receiver.length;
   },
+  $index: function(receiver, index) {
+    if (index >= receiver.length || index < 0)
+      throw H.wrapException(P.RangeError$value(index));
+    return receiver[index];
+  },
   $isList: true
 },
 
@@ -293,7 +297,7 @@ JSMutableArray: {"": "JSArray;",
 
 JSFixedArray: {"": "JSMutableArray;"},
 
-JSExtendableArray: {"": "JSMutableArray;", $isJSExtendableArray: true},
+JSExtendableArray: {"": "JSMutableArray;"},
 
 JSNumber: {"": "num/Interceptor;",
   get$isNegative: function(receiver) {
@@ -316,6 +320,16 @@ JSNumber: {"": "num/Interceptor;",
   },
   get$hashCode: function(receiver) {
     return receiver & 0x1FFFFFFF;
+  },
+  $add: function(receiver, other) {
+    if (typeof other !== "number")
+      throw H.wrapException(new P.ArgumentError(other));
+    return receiver + other;
+  },
+  $mul: function(receiver, other) {
+    if (typeof other !== "number")
+      throw H.wrapException(new P.ArgumentError(other));
+    return receiver * other;
   },
   $shr: function(receiver, other) {
     if (other < 0)
@@ -352,6 +366,11 @@ JSString: {"": "String/Interceptor;",
     if (index >= receiver.length)
       throw H.wrapException(P.RangeError$value(index));
     return receiver.charCodeAt(index);
+  },
+  $add: function(receiver, other) {
+    if (typeof other !== "string")
+      throw H.wrapException(new P.ArgumentError(other));
+    return receiver + other;
   },
   substring$2: function(receiver, startIndex, endIndex) {
     if (endIndex == null)
@@ -390,6 +409,11 @@ JSString: {"": "String/Interceptor;",
   },
   get$length: function(receiver) {
     return receiver.length;
+  },
+  $index: function(receiver, index) {
+    if (index >= receiver.length || index < 0)
+      throw H.wrapException(P.RangeError$value(index));
+    return receiver[index];
   },
   $isString: true
 }}],
@@ -1175,6 +1199,13 @@ ListIterator: {"": "Object;_iterable,_length,_index,_current",
 
 FixedLengthListMixin: {"": "Object;"}}],
 ["dart.collection", "dart:collection", , P, {
+_HashSet__newHashTable: function() {
+  var table = Object.create(null);
+  table["<non-identifier-key>"] = table;
+  delete table["<non-identifier-key>"];
+  return table;
+},
+
 _defaultEquals: function(a, b) {
   return J.$eq(a, b);
 },
@@ -1329,12 +1360,18 @@ _LinkedHashMap: {"": "Object;_collection$_length,_strings,_nums,_rest,_first,_la
     return this._collection$_length;
   },
   $index: function(_, key) {
-    var strings, cell, rest, bucket, index;
-    if (key !== "__proto__") {
+    var strings, cell, nums, rest, bucket, index;
+    if (typeof key === "string" && key !== "__proto__") {
       strings = this._strings;
       if (strings == null)
         return;
       cell = strings[key];
+      return cell == null ? null : cell.get$_value();
+    } else if (typeof key === "number" && (key & 0x3ffffff) === key) {
+      nums = this._nums;
+      if (nums == null)
+        return;
+      cell = nums[key];
       return cell == null ? null : cell.get$_value();
     } else {
       rest = this._rest;
@@ -1458,14 +1495,11 @@ _HashSet: {"": "_HashSetBase;",
     return this._findBucketIndex$2(rest[this._computeHashCode$1(object)], object) >= 0;
   },
   add$1: function(_, element) {
-    var rest, table, hash, bucket;
+    var rest, hash, bucket;
     rest = this._rest;
     if (rest == null) {
-      table = Object.create(null);
-      table["<non-identifier-key>"] = table;
-      delete table["<non-identifier-key>"];
-      this._rest = table;
-      rest = table;
+      rest = P._HashSet__newHashTable();
+      this._rest = rest;
     }
     hash = this._computeHashCode$1(element);
     bucket = rest[hash];
@@ -1763,27 +1797,9 @@ List_List$filled: function($length, fill, $E) {
   return result;
 },
 
-List_List$from: function(other, growable, $E) {
-  var list, t1, $length, fixedList, i;
-  list = P.List_List(null, $E);
-  H.setRuntimeTypeInfo(list, [$E]);
-  for (t1 = J.get$iterator$ax(other); t1.moveNext$0();)
-    list.push(t1.get$current());
-  if (growable)
-    return list;
-  $length = list.length;
-  fixedList = P.List_List($length, $E);
-  H.setRuntimeTypeInfo(fixedList, [$E]);
-  for (t1 = list.length, i = 0; i < $length; ++i) {
-    if (i >= t1)
-      throw H.ioore(list, i);
-    fixedList[i] = list[i];
-  }
-  return fixedList;
-},
-
 print: function(object) {
-  H.printToConsole(object);
+  var line = J.toString$0(object);
+  H.printToConsole(line);
 },
 
 NoSuchMethodError_toString_closure: {"": "Closure;box_0",
@@ -1832,17 +1848,6 @@ RangeError$value: function(value) {
 
 RangeError$range: function(value, start, end) {
   return new P.RangeError("value " + H.S(value) + " not in range " + start + ".." + H.S(end));
-}}
-
-},
-
-UnsupportedError: {"": "Error;message",
-  toString$0: function(_) {
-    return "Unsupported operation: " + this.message;
-  },
-  static: {
-UnsupportedError$: function(message) {
-  return new P.UnsupportedError(message);
 }}
 
 },
@@ -2135,6 +2140,8 @@ MaskElement: {"": "SvgElement;height=,width=", "%": "SVGMaskElement"},
 
 PatternElement: {"": "SvgElement;height=,width=", "%": "SVGPatternElement"},
 
+Rect: {"": "Interceptor;height=,width=", "%": "SVGRect"},
+
 RectElement: {"": "GraphicsElement;height=,width=", "%": "SVGRectElement"},
 
 SvgElement: {"": "Element;", "%": "SVGAltGlyphDefElement|SVGAltGlyphItemElement|SVGAnimateColorElement|SVGAnimateElement|SVGAnimateMotionElement|SVGAnimateTransformElement|SVGAnimationElement|SVGComponentTransferFunctionElement|SVGCursorElement|SVGDescElement|SVGFEDistantLightElement|SVGFEDropShadowElement|SVGFEFuncAElement|SVGFEFuncBElement|SVGFEFuncGElement|SVGFEFuncRElement|SVGFEMergeNodeElement|SVGFEPointLightElement|SVGFESpotLightElement|SVGFontElement|SVGFontFaceElement|SVGFontFaceFormatElement|SVGFontFaceNameElement|SVGFontFaceSrcElement|SVGFontFaceUriElement|SVGGlyphElement|SVGGlyphRefElement|SVGGradientElement|SVGHKernElement|SVGLinearGradientElement|SVGMPathElement|SVGMarkerElement|SVGMetadataElement|SVGMissingGlyphElement|SVGRadialGradientElement|SVGScriptElement|SVGSetElement|SVGStopElement|SVGStyleElement|SVGSymbolElement|SVGTitleElement|SVGVKernElement|SVGViewElement;SVGElement"},
@@ -2144,47 +2151,11 @@ SvgSvgElement: {"": "GraphicsElement;height=,width=", "%": "SVGSVGElement"},
 UseElement: {"": "GraphicsElement;height=,width=", "%": "SVGUseElement"}}],
 ["dart.dom.web_gl", "dart:web_gl", , P, {
 RenderingContext: {"": "CanvasRenderingContext;",
-  bindBuffer$2: function(receiver, target, buffer) {
-    return receiver.bindBuffer(target, buffer);
-  },
-  bufferDataTyped$3: function(receiver, target, data, usage) {
-    return receiver.bufferData(target, data, usage);
-  },
-  clear$1: function(receiver, mask) {
-    return receiver.clear(mask);
-  },
   clearColor$4: function(receiver, red, green, blue, alpha) {
     return receiver.clearColor(red, green, blue, alpha);
   },
-  clearDepth$1: function(receiver, depth) {
-    return receiver.clearDepth(depth);
-  },
-  createBuffer$0: function(receiver) {
-    return receiver.createBuffer();
-  },
-  createShader$1: function(receiver, type) {
-    return receiver.createShader(type);
-  },
-  disable$1: function(receiver, cap) {
-    return receiver.disable(cap);
-  },
-  drawArrays$3: function(receiver, mode, first, count) {
-    return receiver.drawArrays(mode, first, count);
-  },
-  enable$1: function(receiver, cap) {
-    return receiver.enable(cap);
-  },
-  uniformMatrix4fv$3: function(receiver, $location, transpose, array) {
-    return receiver.uniformMatrix4fv($location, transpose, array);
-  },
   useProgram$1: function(receiver, program) {
     return receiver.useProgram(program);
-  },
-  vertexAttribPointer$6: function(receiver, indx, size, type, normalized, stride, offset) {
-    return receiver.vertexAttribPointer(indx, size, type, normalized, stride, offset);
-  },
-  viewport$4: function(receiver, x, y, width, height) {
-    return receiver.viewport(x, y, width, height);
   },
   "%": "WebGLRenderingContext"
 }}],
@@ -2196,7 +2167,7 @@ TypedData: {"": "Interceptor;",
     else
       throw H.wrapException(P.ArgumentError$("Invalid list index " + index));
   },
-  "%": ";ArrayBufferView;TypedData_ListMixin|TypedData_ListMixin_FixedLengthListMixin"
+  "%": ";ArrayBufferView;TypedData_ListMixin|TypedData_ListMixin_FixedLengthListMixin|TypedData_ListMixin0|TypedData_ListMixin_FixedLengthListMixin0"
 },
 
 Float32List: {"": "TypedData_ListMixin_FixedLengthListMixin;",
@@ -2213,9 +2184,27 @@ Float32List: {"": "TypedData_ListMixin_FixedLengthListMixin;",
   "%": "Float32Array"
 },
 
+Uint16List: {"": "TypedData_ListMixin_FixedLengthListMixin0;",
+  get$length: function(receiver) {
+    return C.JS_CONST_ZYJ(receiver);
+  },
+  $index: function(receiver, index) {
+    var t1 = C.JS_CONST_ZYJ(receiver);
+    if (index >>> 0 != index || index >= t1)
+      this._invalidIndex$2(receiver, index, t1);
+    return receiver[index];
+  },
+  $isJavaScriptIndexingBehavior: true,
+  "%": "Uint16Array"
+},
+
 TypedData_ListMixin: {"": "TypedData+ListMixin;"},
 
-TypedData_ListMixin_FixedLengthListMixin: {"": "TypedData_ListMixin+FixedLengthListMixin;"}}],
+TypedData_ListMixin_FixedLengthListMixin: {"": "TypedData_ListMixin+FixedLengthListMixin;"},
+
+TypedData_ListMixin0: {"": "TypedData+ListMixin;"},
+
+TypedData_ListMixin_FixedLengthListMixin0: {"": "TypedData_ListMixin0+FixedLengthListMixin;"}}],
 ["html_common", "dart:html_common", , P, {
 convertDartToNative_Dictionary: function(dict) {
   var object = {};
@@ -2230,123 +2219,143 @@ convertDartToNative_Dictionary_closure: {"": "Closure;object_0",
 }}],
 ["rad_cohesion", "radcoh.dart", , E, {
 main: function() {
-  var t1, t2, t3;
+  var canvas, gl, e, t1, exception, p, t2;
   t1 = new Float32Array(16);
   t1.$dartCachedLength = t1.length;
   t1 = new E.Matrix4(t1);
   t1.identity$0();
   $.mvMatrix = t1;
-  $.canvas = document.querySelector("#the-haps");
-  $.gl = J.getContext3d$0$x($.canvas);
-  t1 = $.gl;
-  if (t1 == null) {
-    P.print("There's no 3d WebGL thingy. Whatever that is. Barf.");
+  canvas = document.querySelector("#the-haps");
+  gl = null;
+  try {
+    gl = E.glContextSetup(canvas);
+  } catch (exception) {
+    t1 = H.unwrapException(exception);
+    e = t1;
+    P.print(e);
     return;
   }
-  J.clearColor$4$x(t1, 0, 0.15, 0.05, 1);
-  J.clearDepth$1$x($.gl, 1);
-  t1 = $.gl;
-  t2 = $.canvas;
-  t3 = J.getInterceptor$x(t2);
-  J.viewport$4$x(t1, 0, 0, t3.get$width(t2), t3.get$height(t2));
-  J.enable$1$x($.gl, 2929);
-  J.disable$1$x($.gl, 3042);
-  E.programSetup();
-  E.bufferSetup();
-  E.drawScene();
+
+  p = E.programSetup(gl);
+  J.useProgram$1$x(gl, p.program);
+  E.bufferSetup(gl);
+  t1 = J.get$width$x(canvas);
+  t2 = J.get$height$x(canvas);
+  if (typeof t1 !== "number")
+    throw t1.$div();
+  if (typeof t2 !== "number")
+    throw H.iae(t2);
+  E.drawScene(gl, p, t1 / t2);
 },
 
-programSetup: function() {
-  $.program = E.GlProgram$($.gl, "      precision mediump float;\n\n      void main(void) {\n      gl_FragColor = vec4(0.8, 0.0, 1.0, 1.0);\n      }\n      ", "      attribute vec3 aVertexPosition;\n\n      uniform mat4 uMVMatrix;\n      uniform mat4 uPMatrix;\n\n      void main(void) {\n      gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);\n      }\n      ", ["aVertexPosition"], ["uMVMatrix", "uPMatrix"]);
-  J.useProgram$1$x($.gl, $.program.program);
+glContextSetup: function(canvas) {
+  var gl = J.getContext3d$0$x(canvas);
+  if (gl == null)
+    throw H.wrapException("There's no 3d WebGL thingy. Whatever that is. Barf.");
+  J.clearColor$4$x(gl, 1, 0.95, 0, 1);
+  gl.clearDepth(1);
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  gl.enable(2929);
+  gl.disable(3042);
+  return gl;
 },
 
-bufferSetup: function() {
-  var x, y, a, b, c, d, e, f, outer, inner, t1, t2;
+programSetup: function(gl) {
+  return E.GlProgram$(gl, "      precision mediump float;\n\n      void main(void) {\n      gl_FragColor = vec4(0.85, 0.0, 1.0, 1.0);\n      }\n      ", "      attribute vec3 aVertexPosition;\n\n      uniform mat4 uMVMatrix;\n      uniform mat4 uPMatrix;\n\n      void main(void) {\n      gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);\n      }\n      ", ["aVertexPosition"], ["uMVMatrix", "uPMatrix"]);
+},
+
+genGridPointList: function() {
+  var x, y, u1, t1, u2, u3, a, i, t2, rm, tm;
   x = Math.cos(1.0471975511965976);
   y = Math.sin(1.0471975511965976);
-  a = [0, 0, 0];
-  b = [2, 0, 0];
-  c = [1, 2 * y, 0];
-  d = [1, 0, 0];
-  e = [2 - x, y, 0];
-  f = [x, y, 0];
-  outer = P.List_List$from(a, true, null);
-  inner = P.List_List$from(d, true, null);
-  C.JSArray_methods.addAll$1(outer, b);
-  C.JSArray_methods.addAll$1(outer, b);
-  C.JSArray_methods.addAll$1(outer, c);
-  C.JSArray_methods.addAll$1(outer, c);
-  C.JSArray_methods.addAll$1(outer, a);
-  C.JSArray_methods.addAll$1(inner, e);
-  C.JSArray_methods.addAll$1(inner, e);
-  C.JSArray_methods.addAll$1(inner, f);
-  C.JSArray_methods.addAll$1(inner, f);
-  C.JSArray_methods.addAll$1(inner, d);
-  $.outerVertexPosBuffer = J.createBuffer$0$x($.gl);
-  J.bindBuffer$2$x($.gl, 34962, $.outerVertexPosBuffer);
-  t1 = $.gl;
-  t2 = new Float32Array(outer);
-  t2.$dartCachedLength = t2.length;
-  J.bufferDataTyped$3$x(t1, 34962, t2, 35044);
-  $.innerVertexPosBuffer = J.createBuffer$0$x($.gl);
-  J.bindBuffer$2$x($.gl, 34962, $.innerVertexPosBuffer);
-  t2 = $.gl;
-  t1 = new Float32Array(inner);
+  u1 = [1, 0, 0];
+  t1 = -x;
+  u2 = [t1, y, 0];
+  u3 = [t1, -y, 0];
+  t1 = new E.genGridPointList_scaleV();
+  a = P.List_List(null, null);
+  for (i = 0; i < 5; ++i) {
+    x = t1.call$2(u1, i * 1);
+    t2 = J.getInterceptor$asx(x);
+    a.push(t2.$index(x, 0));
+    a.push(t2.$index(x, 1));
+    a.push(t2.$index(x, 2));
+  }
+  rm = C.JSArray_methods.sublist$2(a, 12, 15);
+  for (i = 1; i < 5; ++i) {
+    x = t1.call$2(u2, i * 1);
+    if (0 >= rm.length)
+      throw H.ioore(rm, 0);
+    t2 = J.getInterceptor$asx(x);
+    a.push(J.$add$ns(rm[0], t2.$index(x, 0)));
+    if (1 >= rm.length)
+      throw H.ioore(rm, 1);
+    a.push(J.$add$ns(rm[1], t2.$index(x, 1)));
+    if (2 >= rm.length)
+      throw H.ioore(rm, 2);
+    a.push(J.$add$ns(rm[2], t2.$index(x, 2)));
+  }
+  tm = C.JSArray_methods.sublist$2(a, 24, 27);
+  for (i = 1; i < 4; ++i) {
+    x = t1.call$2(u3, i * 1);
+    if (0 >= tm.length)
+      throw H.ioore(tm, 0);
+    t2 = J.getInterceptor$asx(x);
+    a.push(J.$add$ns(tm[0], t2.$index(x, 0)));
+    if (1 >= tm.length)
+      throw H.ioore(tm, 1);
+    a.push(J.$add$ns(tm[1], t2.$index(x, 1)));
+    if (2 >= tm.length)
+      throw H.ioore(tm, 2);
+    a.push(J.$add$ns(tm[2], t2.$index(x, 2)));
+  }
+  return a;
+},
+
+bufferSetup: function(gl) {
+  var a, t1;
+  a = E.genGridPointList();
+  $.gridPointsPosBuffer = gl.createBuffer();
+  gl.bindBuffer(34962, $.gridPointsPosBuffer);
+  t1 = new Float32Array(a);
   t1.$dartCachedLength = t1.length;
-  J.bufferDataTyped$3$x(t2, 34962, t1, 35044);
+  gl.bufferData(34962, t1, 35044);
+  $.gridPointsIndexBuffer = gl.createBuffer();
+  gl.bindBuffer(34963, $.gridPointsIndexBuffer);
+  t1 = new Uint16Array([0, 4, 4, 8, 8, 0, 1, 7, 1, 11, 2, 6, 2, 10, 3, 5, 3, 9, 5, 11, 6, 10, 7, 9]);
+  t1.$dartCachedLength = t1.length;
+  gl.bufferData(34963, t1, 35044);
 },
 
-drawScene: function() {
-  var t1, t2, t3;
-  J.clear$1$ax($.gl, 16640);
-  t1 = $.canvas;
-  t2 = J.getInterceptor$x(t1);
-  t3 = t2.get$width(t1);
-  t1 = t2.get$height(t1);
-  if (typeof t3 !== "number")
-    throw t3.$div();
-  if (typeof t1 !== "number")
-    throw H.iae(t1);
-  $.pMatrix = E.Matrix4_perspective(45, t3 / t1, 0.1, 100);
-  t1 = $.get$mvStack();
-  t3 = new Float32Array($.mvMatrix.buf);
-  t3.$dartCachedLength = t3.length;
-  t1.push(new E.Matrix4(t3));
-  t3 = $.mvMatrix;
-  t3.translate$1(t3, [-1, -1, -4]);
-  J.bindBuffer$2$x($.gl, 34962, $.outerVertexPosBuffer);
-  t3 = $.gl;
-  t1 = $.program.attributes;
-  J.vertexAttribPointer$6$x(t3, t1.$index(t1, "aVertexPosition"), 3, 5126, false, 0, 0);
-  E.setMatrixUniforms();
-  J.drawArrays$3$x($.gl, 1, 0, 6);
-  J.bindBuffer$2$x($.gl, 34962, $.innerVertexPosBuffer);
-  t1 = $.gl;
-  t3 = $.program.attributes;
-  J.vertexAttribPointer$6$x(t1, t3.$index(t3, "aVertexPosition"), 3, 5126, false, 0, 0);
-  E.setMatrixUniforms();
-  J.drawArrays$3$x($.gl, 1, 0, 6);
-  t3 = $.get$mvStack();
-  if (0 >= t3.length)
-    throw H.ioore(t3, 0);
-  $.mvMatrix = t3.pop();
-},
-
-setMatrixUniforms: function() {
+drawScene: function(gl, prog, aspect) {
   var t1, t2;
-  t1 = $.gl;
-  t2 = $.program.uniforms;
-  J.uniformMatrix4fv$3$x(t1, t2.$index(t2, "uPMatrix"), false, $.pMatrix.buf);
-  t2 = $.gl;
-  t1 = $.program.uniforms;
-  J.uniformMatrix4fv$3$x(t2, t1.$index(t1, "uMVMatrix"), false, $.mvMatrix.buf);
+  gl.clear(16640);
+  $.pMatrix = E.Matrix4_perspective(45, aspect, 0.1, 100);
+  t1 = $.get$mvStack();
+  t2 = new Float32Array($.mvMatrix.buf);
+  t2.$dartCachedLength = t2.length;
+  t1.push(new E.Matrix4(t2));
+  t2 = $.mvMatrix;
+  t2.translate$1(t2, [-2, -1.5, -6]);
+  gl.bindBuffer(34962, $.gridPointsPosBuffer);
+  t2 = prog.attributes;
+  gl.vertexAttribPointer(t2.$index(t2, "aVertexPosition"), 3, 5126, false, 0, 0);
+  gl.bindBuffer(34963, $.gridPointsIndexBuffer);
+  gl.vertexAttribPointer(t2.$index(t2, "aVertexPosition"), 3, 5126, false, 0, 0);
+  t2 = prog.uniforms;
+  gl.uniformMatrix4fv(t2.$index(t2, "uPMatrix"), false, $.pMatrix.buf);
+  gl.uniformMatrix4fv(t2.$index(t2, "uMVMatrix"), false, $.mvMatrix.buf);
+  gl.drawElements(1, 24, 5123, 0);
+  t2 = $.get$mvStack();
+  if (0 >= t2.length)
+    throw H.ioore(t2, 0);
+  $.mvMatrix = t2.pop();
 },
 
 GlProgram: {"": "Object;attributes,uniforms,program,fragShader,vertShader,gl",
   GlProgram$5: function(gl, fragSrc, vertSrc, attributeNames, uniformNames) {
     var t1, t2, attrib, attributeLocation, uniform;
-    this.fragShader = J.createShader$1$x(gl, 35632);
+    this.fragShader = gl.createShader(35632);
     gl.shaderSource(this.fragShader, fragSrc);
     gl.compileShader(this.fragShader);
     this.vertShader = gl.createShader(35633);
@@ -2378,7 +2387,7 @@ GlProgram$: function(gl, fragSrc, vertSrc, attributeNames, uniformNames) {
 
 },
 
-Matrix4: {"": "Object;buf",
+Matrix4: {"": "Object;buf<",
   toString$0: function(_) {
     var v, display, rows, t1, row, items, col, t2, exception;
     rows = P.List_List(null, null);
@@ -2486,6 +2495,31 @@ Matrix4: {"": "Object;buf",
     t1[15] = t6 * tx + t5 * ty + t4 * tz + t1[15] * tw;
     return this;
   },
+  $mul: function(_, matrixB) {
+    var t1, matrixC, bufA, bufB, bufC, t2, t3, row, col, t4, t5, i, t6, t7, t8;
+    t1 = new Float32Array(16);
+    t1.$dartCachedLength = t1.length;
+    matrixC = new E.Matrix4(t1);
+    bufA = this.buf;
+    bufB = matrixB.get$buf();
+    bufC = matrixC.buf;
+    for (t1 = C.JS_CONST_ZYJ(bufC), t2 = C.JS_CONST_ZYJ(bufA), t3 = C.JS_CONST_ZYJ(bufB), row = 0; row < 4; ++row)
+      for (col = 0; col < 4; ++col)
+        for (t4 = col * 4, t5 = row + t4, i = 0; i < 4; ++i) {
+          if (t5 < 0 || t5 >= t1)
+            throw H.ioore(bufC, t5);
+          t6 = bufC[t5];
+          t7 = row + i * 4;
+          if (t7 < 0 || t7 >= t2)
+            throw H.ioore(bufA, t7);
+          t7 = bufA[t7];
+          t8 = i + t4;
+          if (t8 < 0 || t8 >= t3)
+            throw H.ioore(bufB, t8);
+          bufC[t5] = t6 + t7 * bufB[t8];
+        }
+    return matrixC;
+  },
   static: {
 "": "Matrix4_GLMAT_EPSILON",
 Matrix4_perspective: function(fovyDegrees, aspectRatio, zNear, zFar) {
@@ -2530,6 +2564,15 @@ Matrix4_frustum: function(left, right, bottom, $top, near, far) {
   return dest;
 }}
 
+},
+
+genGridPointList_scaleV: {"": "Closure;",
+  call$2: function(xs, c) {
+    var t1, t2;
+    t1 = J.getInterceptor$asx(xs);
+    t2 = J.getInterceptor$n(c);
+    return [t2.$mul(c, t1.$index(xs, 0)), t2.$mul(c, t1.$index(xs, 1)), t2.$mul(c, t1.$index(xs, 2))];
+  }
 }},
 1],
 ]);
@@ -2592,6 +2635,17 @@ J.getInterceptor$ax = function(receiver) {
 J.getInterceptor$n = function(receiver) {
   if (typeof receiver == "number")
     return J.JSNumber.prototype;
+  if (receiver == null)
+    return receiver;
+  if (!(receiver instanceof P.Object))
+    return J.UnknownJavaScriptObject.prototype;
+  return receiver;
+};
+J.getInterceptor$ns = function(receiver) {
+  if (typeof receiver == "number")
+    return J.JSNumber.prototype;
+  if (typeof receiver == "string")
+    return J.JSString.prototype;
   if (receiver == null)
     return receiver;
   if (!(receiver instanceof P.Object))
@@ -2747,13 +2801,15 @@ $.initNativeDispatchFlag = null;
 $.printToZone = null;
 $.Device__isOpera = null;
 $.Device__isWebKit = null;
-$.canvas = null;
-$.gl = null;
-$.program = null;
-$.innerVertexPosBuffer = null;
-$.outerVertexPosBuffer = null;
+$.gridPointsPosBuffer = null;
+$.gridPointsIndexBuffer = null;
 $.pMatrix = null;
 $.mvMatrix = null;
+J.$add$ns = function(receiver, a0) {
+  if (typeof receiver == "number" && typeof a0 == "number")
+    return receiver + a0;
+  return J.getInterceptor$ns(receiver).$add(receiver, a0);
+};
 J.$eq = function(receiver, a0) {
   if (receiver == null)
     return a0 == null;
@@ -2767,35 +2823,8 @@ J.$index$asx = function(receiver, a0) {
       return receiver[a0];
   return J.getInterceptor$asx(receiver).$index(receiver, a0);
 };
-J.bindBuffer$2$x = function(receiver, a0, a1) {
-  return J.getInterceptor$x(receiver).bindBuffer$2(receiver, a0, a1);
-};
-J.bufferDataTyped$3$x = function(receiver, a0, a1, a2) {
-  return J.getInterceptor$x(receiver).bufferDataTyped$3(receiver, a0, a1, a2);
-};
-J.clear$1$ax = function(receiver, a0) {
-  return J.getInterceptor$ax(receiver).clear$1(receiver, a0);
-};
 J.clearColor$4$x = function(receiver, a0, a1, a2, a3) {
   return J.getInterceptor$x(receiver).clearColor$4(receiver, a0, a1, a2, a3);
-};
-J.clearDepth$1$x = function(receiver, a0) {
-  return J.getInterceptor$x(receiver).clearDepth$1(receiver, a0);
-};
-J.createBuffer$0$x = function(receiver) {
-  return J.getInterceptor$x(receiver).createBuffer$0(receiver);
-};
-J.createShader$1$x = function(receiver, a0) {
-  return J.getInterceptor$x(receiver).createShader$1(receiver, a0);
-};
-J.disable$1$x = function(receiver, a0) {
-  return J.getInterceptor$x(receiver).disable$1(receiver, a0);
-};
-J.drawArrays$3$x = function(receiver, a0, a1, a2) {
-  return J.getInterceptor$x(receiver).drawArrays$3(receiver, a0, a1, a2);
-};
-J.enable$1$x = function(receiver, a0) {
-  return J.getInterceptor$x(receiver).enable$1(receiver, a0);
 };
 J.forEach$1$ax = function(receiver, a0) {
   return J.getInterceptor$ax(receiver).forEach$1(receiver, a0);
@@ -2803,11 +2832,17 @@ J.forEach$1$ax = function(receiver, a0) {
 J.get$hashCode$ = function(receiver) {
   return J.getInterceptor(receiver).get$hashCode(receiver);
 };
+J.get$height$x = function(receiver) {
+  return J.getInterceptor$x(receiver).get$height(receiver);
+};
 J.get$iterator$ax = function(receiver) {
   return J.getInterceptor$ax(receiver).get$iterator(receiver);
 };
 J.get$length$asx = function(receiver) {
   return J.getInterceptor$asx(receiver).get$length(receiver);
+};
+J.get$width$x = function(receiver) {
+  return J.getInterceptor$x(receiver).get$width(receiver);
 };
 J.getContext3d$0$x = function(receiver) {
   return J.getInterceptor$x(receiver).getContext3d$0(receiver);
@@ -2818,17 +2853,8 @@ J.toString$0 = function(receiver) {
 J.toStringAsPrecision$1$n = function(receiver, a0) {
   return J.getInterceptor$n(receiver).toStringAsPrecision$1(receiver, a0);
 };
-J.uniformMatrix4fv$3$x = function(receiver, a0, a1, a2) {
-  return J.getInterceptor$x(receiver).uniformMatrix4fv$3(receiver, a0, a1, a2);
-};
 J.useProgram$1$x = function(receiver, a0) {
   return J.getInterceptor$x(receiver).useProgram$1(receiver, a0);
-};
-J.vertexAttribPointer$6$x = function(receiver, a0, a1, a2, a3, a4, a5) {
-  return J.getInterceptor$x(receiver).vertexAttribPointer$6(receiver, a0, a1, a2, a3, a4, a5);
-};
-J.viewport$4$x = function(receiver, a0, a1, a2, a3) {
-  return J.getInterceptor$x(receiver).viewport$4(receiver, a0, a1, a2, a3);
 };
 Isolate.$lazy($, "noSuchMethodPattern", "TypeErrorDecoder_noSuchMethodPattern", "get$TypeErrorDecoder_noSuchMethodPattern", function() {
   return H.TypeErrorDecoder_extractPattern(H.TypeErrorDecoder_provokeCallErrorOn({ toString: function() { return "$receiver$"; } }));
