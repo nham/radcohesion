@@ -26,25 +26,36 @@ void main() {
     return;
   }
   
-  thingySetup();
+  gl.clearColor(0.0, 0.15, 0.05, 1.0);
+  gl.clearDepth(1.0);
+  
+  // set the GL viewport to the same size as the canvas element so there's no resizing
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  
+  // TODO: figure out what these two do
+  gl.enable(DEPTH_TEST);
+  gl.disable(BLEND);
+  
+  
+  programSetup();
+  bufferSetup();
   drawScene();
 }
 
-// the main buffer
-Buffer innerVertexPosBuffer, outerVertexPosBuffer;
 
 // not sure what this is
 GlProgram program;
 
-
-void thingySetup() {
-  program = new GlProgram('''
+void programSetup() {
+  var fragmentShader = '''
       precision mediump float;
 
       void main(void) {
       gl_FragColor = vec4(0.8, 0.0, 1.0, 1.0);
       }
-      ''','''
+      ''';
+  
+  var vertexShader = '''
       attribute vec3 aVertexPosition;
 
       uniform mat4 uMVMatrix;
@@ -53,11 +64,17 @@ void thingySetup() {
       void main(void) {
       gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
       }
-      ''', ['aVertexPosition'], ['uMVMatrix', 'uPMatrix']);
+      ''';
+  
+  program = new GlProgram(gl, fragmentShader, vertexShader, ['aVertexPosition'], ['uMVMatrix', 'uPMatrix']);
   gl.useProgram(program.program);
-  
+}
 
-  
+
+// the main buffer(s)
+Buffer innerVertexPosBuffer, outerVertexPosBuffer;
+
+void bufferSetup() {
   var x = cos(PI/3);
   var y = sin(PI/3);
   var h = 2 * y;
@@ -96,11 +113,7 @@ void thingySetup() {
   gl.bindBuffer(ARRAY_BUFFER, innerVertexPosBuffer);
   gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(inner),
       STATIC_DRAW);
-  
-  // Specify the color to clear with (black with 100% alpha) and then enable
-  // depth testing.
-  gl.clearColor(0.0, 0.1, 0.0, 1.0);
-}
+  }
 
 
 
@@ -123,14 +136,13 @@ mvPopMatrix() => mvMatrix = mvStack.removeLast();
 
 
 void drawScene() {
-// set the GL viewport to the same size as the canvas element so there's no resizing
-  gl.viewport(0, 0, canvas.width, canvas.height);
+  // webgl documentation says "clear buffers to preset values"
+  // "glClear sets the bitplane area of the window to values previously selected"
+  // TODO: figure out what a bitplane is
   gl.clear(COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT);
-  gl.enable(DEPTH_TEST);
-  gl.disable(BLEND);
   
-  var aspect = canvas.width / canvas.height;
-  pMatrix = Matrix4.perspective(45.0, aspect, 0.1, 100.0);
+  // something something field of view is 45 degrees. the last 2 are something to do with depth.
+  pMatrix = Matrix4.perspective(45.0, canvas.width / canvas.height, 0.1, 100.0);
   
   // First stash the current model view matrix before we start moving around.
   mvPushMatrix();
