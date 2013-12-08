@@ -1,5 +1,4 @@
 packages
-web/dart.js
 *.dart.js
 *.js.deps
 *.js.map
