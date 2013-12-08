@@ -137,18 +137,19 @@ List<double> genGridPointList() {
 }
 
 void bufferSetup(RenderingContext gl) {
-  var a = genGridPointList();
-  
-  gridPointsPosBuffer = gl.createBuffer();
-  gl.bindBuffer(ARRAY_BUFFER, gridPointsPosBuffer);
-  gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(a), STATIC_DRAW);
-  
   // I think there's a notion of a "current" array buffer, whatever an array buffer is
   // and all buffer operations to array buffers apply only to the current one?
   // so bindBuffer tells us that for all the buffer stuff that follows, we'll be using
   // this one (triangleVertexPositionBuffer)
 
   // I'm also not sure what STATIC_DRAW is and how it compares to other options!
+
+  var a = genGridPointList();
+
+  gridPointsPosBuffer = gl.createBuffer();
+  gl.bindBuffer(ARRAY_BUFFER, gridPointsPosBuffer);
+  gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(a), STATIC_DRAW);
+
   
   gridPointsIndexBuffer = gl.createBuffer();
   gl.bindBuffer(ELEMENT_ARRAY_BUFFER, gridPointsIndexBuffer);
