@@ -67,11 +67,28 @@ void thingySetup() {
   // we're maybe feeding in the vertices of an isosceles triangle here to the buffer.
   // I'm not exactly sure what "feeding in" means here.
   // I'm also not sure what STATIC_DRAW is and how it compares to other options!
-  gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList([
-       0.0,  1.0,  0.0,
-      -1.0, -1.0,  0.0,
-       1.0, -1.0,  0.0
-    ]), STATIC_DRAW);
+  
+  var x = 1 / tan(PI/3);
+  var a = [0.0, 1.0, 0.0];
+  var b = [-x,  0.0, 0.0];
+  var c = [x,   0.0, 0.0];
+  var d = [-1.0, -1.0, 0.0];
+  var e = [0.0, -1.0, 0.0];
+  var f = [1.0, -1.0, 0.0];
+  
+  var triforce = new List.from(a);
+  triforce..addAll(b)
+    ..addAll(b)..addAll(d)
+    ..addAll(d)..addAll(e)
+    ..addAll(e)..addAll(b)
+    ..addAll(b)..addAll(c)
+    ..addAll(c)..addAll(e)
+    ..addAll(e)..addAll(f)
+    ..addAll(f)..addAll(c)
+    ..addAll(c)..addAll(a);
+  
+  gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(triforce),
+      STATIC_DRAW);
   
   // Specify the color to clear with (black with 100% alpha) and then enable
   // depth testing.
@@ -119,7 +136,7 @@ void drawScene() {
   gl.vertexAttribPointer(program.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
   setMatrixUniforms();
   // Now draw 3 vertices
-  gl.drawArrays(TRIANGLES, 0, 3);
+  gl.drawArrays(LINES, 0, 18);
   
 // Finally, reset the matrix back to what it was before we moved around.
   mvPopMatrix();
