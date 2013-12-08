@@ -31,7 +31,7 @@ void main() {
 }
 
 // the main buffer
-Buffer triangleVertexPositionBuffer;
+Buffer innerVertexPosBuffer, outerVertexPosBuffer;
 
 // not sure what this is
 GlProgram program;
@@ -42,7 +42,7 @@ void thingySetup() {
       precision mediump float;
 
       void main(void) {
-      gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+      gl_FragColor = vec4(0.8, 0.0, 1.0, 1.0);
       }
       ''','''
       attribute vec3 aVertexPosition;
@@ -56,43 +56,50 @@ void thingySetup() {
       ''', ['aVertexPosition'], ['uMVMatrix', 'uPMatrix']);
   gl.useProgram(program.program);
   
-  triangleVertexPositionBuffer = gl.createBuffer();
+
+  
+  var x = cos(PI/3);
+  var y = sin(PI/3);
+  var h = 2 * y;
+  var a = [0.0, 0.0, 0.0];
+  var b = [2.0,  0.0, 0.0];
+  var c = [1.0,  h, 0.0];
+  var d = [1.0, 0.0, 0.0]; // between a & b
+  var e = [2.0 - x, y, 0.0]; // between b & c
+  var f = [x, y, 0.0]; // between c & a
+  
+  var outer = new List.from(a);
+  var inner = new List.from(d);
+
+  outer..addAll(b)
+    ..addAll(b)..addAll(c)
+    ..addAll(c)..addAll(a);
+  
+  inner..addAll(e)
+    ..addAll(e)..addAll(f)
+    ..addAll(f)..addAll(d);
   
   // I think there's a notion of a "current" array buffer, whatever an array buffer is
   // and all buffer operations to array buffers apply only to the current one?
   // so bindBuffer tells us that for all the buffer stuff that follows, we'll be using
   // this one (triangleVertexPositionBuffer)
-  gl.bindBuffer(ARRAY_BUFFER, triangleVertexPositionBuffer);
-  
-  // we're maybe feeding in the vertices of an isosceles triangle here to the buffer.
-  // I'm not exactly sure what "feeding in" means here.
+
   // I'm also not sure what STATIC_DRAW is and how it compares to other options!
   
-  var x = 1 / tan(PI/3);
-  var a = [0.0, 1.0, 0.0];
-  var b = [-x,  0.0, 0.0];
-  var c = [x,   0.0, 0.0];
-  var d = [-1.0, -1.0, 0.0];
-  var e = [0.0, -1.0, 0.0];
-  var f = [1.0, -1.0, 0.0];
+  outerVertexPosBuffer = gl.createBuffer();
+  gl.bindBuffer(ARRAY_BUFFER, outerVertexPosBuffer);
+  gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(outer),
+      STATIC_DRAW);
   
-  var triforce = new List.from(a);
-  triforce..addAll(b)
-    ..addAll(b)..addAll(d)
-    ..addAll(d)..addAll(e)
-    ..addAll(e)..addAll(b)
-    ..addAll(b)..addAll(c)
-    ..addAll(c)..addAll(e)
-    ..addAll(e)..addAll(f)
-    ..addAll(f)..addAll(c)
-    ..addAll(c)..addAll(a);
   
-  gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(triforce),
+  innerVertexPosBuffer = gl.createBuffer();
+  gl.bindBuffer(ARRAY_BUFFER, innerVertexPosBuffer);
+  gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(inner),
       STATIC_DRAW);
   
   // Specify the color to clear with (black with 100% alpha) and then enable
   // depth testing.
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clearColor(0.0, 0.1, 0.0, 1.0);
 }
 
 
@@ -128,15 +135,22 @@ void drawScene() {
   // First stash the current model view matrix before we start moving around.
   mvPushMatrix();
 
-  mvMatrix.translate([0.0, 0.0, -4.0]);
+  mvMatrix.translate([-1.0, -1.0, -4.0]);
 
   // Here's that bindBuffer() again, as seen in the constructor
-  gl.bindBuffer(ARRAY_BUFFER, triangleVertexPositionBuffer);
+  gl.bindBuffer(ARRAY_BUFFER, outerVertexPosBuffer);
   // Set the vertex attribute to the size of each individual element (x,y,z)
   gl.vertexAttribPointer(program.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
   setMatrixUniforms();
   // Now draw 3 vertices
-  gl.drawArrays(LINES, 0, 18);
+  gl.drawArrays(LINES, 0, 6);
+  
+  
+  gl.bindBuffer(ARRAY_BUFFER, innerVertexPosBuffer);
+  gl.vertexAttribPointer(program.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
+  setMatrixUniforms();
+  gl.drawArrays(LINES, 0, 6);
+  
   
 // Finally, reset the matrix back to what it was before we moved around.
   mvPopMatrix();

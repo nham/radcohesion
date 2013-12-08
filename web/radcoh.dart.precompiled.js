@@ -2270,41 +2270,42 @@ main: function() {
 },
 
 thingySetup: function() {
-  var x, a, b, c, d, e, f, triforce, t1, t2;
-  $.program = E.GlProgram$("      precision mediump float;\n\n      void main(void) {\n      gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n      }\n      ", "      attribute vec3 aVertexPosition;\n\n      uniform mat4 uMVMatrix;\n      uniform mat4 uPMatrix;\n\n      void main(void) {\n      gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);\n      }\n      ", ["aVertexPosition"], ["uMVMatrix", "uPMatrix"]);
+  var x, y, a, b, c, d, e, f, outer, inner, t1, t2;
+  $.program = E.GlProgram$("      precision mediump float;\n\n      void main(void) {\n      gl_FragColor = vec4(0.8, 0.0, 1.0, 1.0);\n      }\n      ", "      attribute vec3 aVertexPosition;\n\n      uniform mat4 uMVMatrix;\n      uniform mat4 uPMatrix;\n\n      void main(void) {\n      gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);\n      }\n      ", ["aVertexPosition"], ["uMVMatrix", "uPMatrix"]);
   J.useProgram$1$x($.gl, $.program.program);
-  $.triangleVertexPositionBuffer = J.createBuffer$0$x($.gl);
-  J.bindBuffer$2$x($.gl, 34962, $.triangleVertexPositionBuffer);
-  x = 1 / Math.tan(1.0471975511965976);
-  a = [0, 1, 0];
-  b = [-x, 0, 0];
-  c = [x, 0, 0];
-  d = [-1, -1, 0];
-  e = [0, -1, 0];
-  f = [1, -1, 0];
-  triforce = P.List_List$from(a, true, null);
-  C.JSArray_methods.addAll$1(triforce, b);
-  C.JSArray_methods.addAll$1(triforce, b);
-  C.JSArray_methods.addAll$1(triforce, d);
-  C.JSArray_methods.addAll$1(triforce, d);
-  C.JSArray_methods.addAll$1(triforce, e);
-  C.JSArray_methods.addAll$1(triforce, e);
-  C.JSArray_methods.addAll$1(triforce, b);
-  C.JSArray_methods.addAll$1(triforce, b);
-  C.JSArray_methods.addAll$1(triforce, c);
-  C.JSArray_methods.addAll$1(triforce, c);
-  C.JSArray_methods.addAll$1(triforce, e);
-  C.JSArray_methods.addAll$1(triforce, e);
-  C.JSArray_methods.addAll$1(triforce, f);
-  C.JSArray_methods.addAll$1(triforce, f);
-  C.JSArray_methods.addAll$1(triforce, c);
-  C.JSArray_methods.addAll$1(triforce, c);
-  C.JSArray_methods.addAll$1(triforce, a);
+  x = Math.cos(1.0471975511965976);
+  y = Math.sin(1.0471975511965976);
+  a = [0, 0, 0];
+  b = [2, 0, 0];
+  c = [1, 2 * y, 0];
+  d = [1, 0, 0];
+  e = [2 - x, y, 0];
+  f = [x, y, 0];
+  outer = P.List_List$from(a, true, null);
+  inner = P.List_List$from(d, true, null);
+  C.JSArray_methods.addAll$1(outer, b);
+  C.JSArray_methods.addAll$1(outer, b);
+  C.JSArray_methods.addAll$1(outer, c);
+  C.JSArray_methods.addAll$1(outer, c);
+  C.JSArray_methods.addAll$1(outer, a);
+  C.JSArray_methods.addAll$1(inner, e);
+  C.JSArray_methods.addAll$1(inner, e);
+  C.JSArray_methods.addAll$1(inner, f);
+  C.JSArray_methods.addAll$1(inner, f);
+  C.JSArray_methods.addAll$1(inner, d);
+  $.outerVertexPosBuffer = J.createBuffer$0$x($.gl);
+  J.bindBuffer$2$x($.gl, 34962, $.outerVertexPosBuffer);
   t1 = $.gl;
-  t2 = new Float32Array(triforce);
+  t2 = new Float32Array(outer);
   t2.$dartCachedLength = t2.length;
   J.bufferDataTyped$3$x(t1, 34962, t2, 35044);
-  J.clearColor$4$x($.gl, 0, 0, 0, 1);
+  $.innerVertexPosBuffer = J.createBuffer$0$x($.gl);
+  J.bindBuffer$2$x($.gl, 34962, $.innerVertexPosBuffer);
+  t2 = $.gl;
+  t1 = new Float32Array(inner);
+  t1.$dartCachedLength = t1.length;
+  J.bufferDataTyped$3$x(t2, 34962, t1, 35044);
+  J.clearColor$4$x($.gl, 0, 0.1, 0, 1);
 },
 
 drawScene: function() {
@@ -2330,17 +2331,23 @@ drawScene: function() {
   t1.$dartCachedLength = t1.length;
   t2.push(new E.Matrix4(t1));
   t1 = $.mvMatrix;
-  t1.translate$1(t1, [0, 0, -4]);
-  J.bindBuffer$2$x($.gl, 34962, $.triangleVertexPositionBuffer);
+  t1.translate$1(t1, [-1, -1, -4]);
+  J.bindBuffer$2$x($.gl, 34962, $.outerVertexPosBuffer);
   t1 = $.gl;
   t2 = $.program.attributes;
   J.vertexAttribPointer$6$x(t1, t2.$index(t2, "aVertexPosition"), 3, 5126, false, 0, 0);
   E.setMatrixUniforms();
-  J.drawArrays$3$x($.gl, 1, 0, 18);
-  t2 = $.get$mvStack();
-  if (0 >= t2.length)
-    throw H.ioore(t2, 0);
-  $.mvMatrix = t2.pop();
+  J.drawArrays$3$x($.gl, 1, 0, 6);
+  J.bindBuffer$2$x($.gl, 34962, $.innerVertexPosBuffer);
+  t2 = $.gl;
+  t1 = $.program.attributes;
+  J.vertexAttribPointer$6$x(t2, t1.$index(t1, "aVertexPosition"), 3, 5126, false, 0, 0);
+  E.setMatrixUniforms();
+  J.drawArrays$3$x($.gl, 1, 0, 6);
+  t1 = $.get$mvStack();
+  if (0 >= t1.length)
+    throw H.ioore(t1, 0);
+  $.mvMatrix = t1.pop();
 },
 
 setMatrixUniforms: function() {
@@ -2759,7 +2766,8 @@ $.Device__isOpera = null;
 $.Device__isWebKit = null;
 $.canvas = null;
 $.gl = null;
-$.triangleVertexPositionBuffer = null;
+$.innerVertexPosBuffer = null;
+$.outerVertexPosBuffer = null;
 $.program = null;
 $.pMatrix = null;
 $.mvMatrix = null;
