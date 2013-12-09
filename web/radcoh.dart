@@ -237,18 +237,29 @@ void tetraBufferSetup(RenderingContext gl) {
   List<double> u3 = [ -x,  -y, 0.0]; // on bottom, from the topmost going to leftmost
   List<double> u4 = scaleV([ -x,   y,   y], 2/sqrt(7)); // from bottom leftmost to the apex
   
+  var va = [0.0, 0.0, 0.0];
+  var vb = scaleV(u1, s);
+  var vc = scaleV(u3, -s);
+  var vd = scaleV(u4, s);
+  
   List<double> a = new List();
-
-  a..add(0.0)..add(0.0)..add(0.0);
+  addVtoa (v) => a..add(v[0])..add(v[1])..add(v[2]);
   
-  var w = scaleV(u1, s);
-  a..add(w[0])..add(w[1])..add(w[2]);
+  addVtoa(va);
+  addVtoa(vb);
+  addVtoa(vc);
   
-  w = addV(w, scaleV(u2, s));
-  a..add(w[0])..add(w[1])..add(w[2]);
+  addVtoa(va);
+  addVtoa(vb);
+  addVtoa(vd);
   
-  w = scaleV(u4, s);
-  a..add(w[0])..add(w[1])..add(w[2]);
+  addVtoa(vb);
+  addVtoa(vc);
+  addVtoa(vd);
+  
+  addVtoa(vc);
+  addVtoa(va);
+  addVtoa(vd);
   
   print(a);
   
@@ -260,12 +271,34 @@ void tetraBufferSetup(RenderingContext gl) {
   tetraIndexBuffer = gl.createBuffer();
   gl.bindBuffer(ELEMENT_ARRAY_BUFFER, tetraIndexBuffer);
   
-  var gridPointsIndices = [0, 1, 2,  0, 1, 3, 
-                           1, 2, 3,  0, 2, 3];
+  var gridPointsIndices = [ 0,  1,  2,   3,  4,  5,
+                            6,  7,  8,   9, 10, 11
+                          ];
   
   // Now send the element array to GL
   gl.bufferDataTyped(ELEMENT_ARRAY_BUFFER, 
       new Uint16List.fromList(gridPointsIndices), STATIC_DRAW);
+  
+  
+  var colors = [
+                1.0,  0.0,  0.0,  1.0,    // red
+                1.0,  0.0,  0.0,  1.0,    // red
+                1.0,  0.0,  0.0,  1.0,    // red
+                0.0,  1.0,  0.0,  1.0,    // green
+                0.0,  1.0,  0.0,  1.0,    // green
+                0.0,  1.0,  0.0,  1.0,    // green
+                0.0,  0.0,  1.0,  1.0,    // blue
+                0.0,  0.0,  1.0,  1.0,    // blue
+                0.0,  0.0,  1.0,  1.0,    // blue
+                1.0,  1.0,  1.0,  1.0,    // notblack
+                1.0,  1.0,  1.0,  1.0,    // notblack
+                1.0,  1.0,  1.0,  1.0     // notblack
+                ];
+  
+  print("lens: ${a.length}, ${colors.length}");
+  tetraColorBuffer = gl.createBuffer();
+  gl.bindBuffer(ARRAY_BUFFER, tetraColorBuffer);
+  gl.bufferData(ARRAY_BUFFER, new Float32List.fromList(colors), STATIC_DRAW);
 }
 
 
@@ -307,6 +340,25 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   gl.uniformMatrix4fv(prog.uniforms['uPMatrix'], false, pMatrix.buf);
   gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, mvMatrix.buf);
   gl.drawElements(LINES, 24, UNSIGNED_SHORT, 0);
+  
+  
+
+  mvMatrix.translate([0.0, -4.0, -9.0]);
+  
+  gl.bindBuffer(ARRAY_BUFFER, tetraPosBuffer);
+  // Set the vertex attribute to the size of each individual element (x,y,z)
+  gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
+  
+  gl.bindBuffer(ELEMENT_ARRAY_BUFFER, tetraIndexBuffer);
+  gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
+
+  gl.bindBuffer(ARRAY_BUFFER, tetraColorBuffer);
+  gl.vertexAttribPointer(prog.attributes['aVertexColor'], 4, FLOAT, false, 0, 0);
+  
+  
+  gl.uniformMatrix4fv(prog.uniforms['uPMatrix'], false, pMatrix.buf);
+  gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, mvMatrix.buf);
+  gl.drawElements(TRIANGLES, 12, UNSIGNED_SHORT, 0);
 
   
 // Finally, reset the matrix back to what it was before we moved around.
