@@ -99,6 +99,10 @@ List<double> genGridPointList() {
    *    0  1 2 3  4
    */
   
+  scaleV (xs, c) => [c * xs[0], c * xs[1], c * xs[2]];
+  
+  addV (u, v) => [u[0] + v[0], u[1] + v[1], u[2] + v[2]];
+  
   double x = cos(PI/3);
   double y = sin(PI/3);
 
@@ -110,7 +114,6 @@ List<double> genGridPointList() {
   List<double> u2 = [ -x,   y, 0.0]; // from the rightmost going to topmost
   List<double> u3 = [ -x,  -y, 0.0]; // from the topmost going to leftmost
   
-  scaleV (xs, c) => [c * xs[0], c * xs[1], c * xs[2]];
 
   // we'll return this later
   List<double> a = new List();
@@ -124,18 +127,16 @@ List<double> genGridPointList() {
 
   for(var i = 1; i < 5; i++) {
     var x = scaleV(u2, i * 1.0);
-    a..add(rm[0] + x[0])
-     ..add(rm[1] + x[1])
-     ..add(rm[2] + x[2]);
+    x = addV(x, rm);
+    a..add(x[0])..add(x[1])..add(x[2]);
   }
   
   List<double> tm = a.sublist(3*8, 3*9); // topmost
 
   for(var i = 1; i < 4; i++) {
     var x = scaleV(u3, i * 1.0);
-    a..add(tm[0] + x[0])
-     ..add(tm[1] + x[1])
-     ..add(tm[2] + x[2]);
+    x = addV(x, tm);
+    a..add(x[0])..add(x[1])..add(x[2]);
   }
   
   return a;
