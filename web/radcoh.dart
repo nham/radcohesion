@@ -105,28 +105,35 @@ List<double> genGridPointList() {
   
   double x = cos(PI/3);
   double y = sin(PI/3);
+  double sl = tan(PI/3);
 
   // all vectors referenced from the leftmost point
   // we aren't using Vector3 because it internally uses Float32List, which is a
   // fixed length list, and I'm not sure how to do what I need to do with that.
   
+  double s = 4.0;
+  double hs = s / 2;
+  double sc = s / 4; // used scale u1 through u3 when generating the coords
+  
   List<double> u1 = [1.0, 0.0, 0.0]; // from the leftmost going to rightmost
   List<double> u2 = [ -x,   y, 0.0]; // from the rightmost going to topmost
   List<double> u3 = [ -x,  -y, 0.0]; // from the topmost going to leftmost
   
-
+  List<double> v = [-hs, -hs/sl, 0.0]; // vector from the center of the triangle to the leftmost vertex
+  
   // we'll return this later
   List<double> a = new List();
   
   for(var i = 0; i < 5; i++) {
-    var x = scaleV(u1, i * 1.0);
+    var x = scaleV(u1, i * sc);
+    x = addV(x, v);
     a..add(x[0])..add(x[1])..add(x[2]);
   }
   
   List<double> rm = a.sublist(3*4, 3*5);
 
   for(var i = 1; i < 5; i++) {
-    var x = scaleV(u2, i * 1.0);
+    var x = scaleV(u2, i * sc);
     x = addV(x, rm);
     a..add(x[0])..add(x[1])..add(x[2]);
   }
@@ -134,7 +141,7 @@ List<double> genGridPointList() {
   List<double> tm = a.sublist(3*8, 3*9); // topmost
 
   for(var i = 1; i < 4; i++) {
-    var x = scaleV(u3, i * 1.0);
+    var x = scaleV(u3, i * sc);
     x = addV(x, tm);
     a..add(x[0])..add(x[1])..add(x[2]);
   }
@@ -222,7 +229,7 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   // First stash the current model view matrix before we start moving around.
   mvPushMatrix();
 
-  mvMatrix.translate([-2, -1.5, -9.0]);
+  mvMatrix.translate([0.0, 0.0, -9.0]);
 
   gl.bindBuffer(ARRAY_BUFFER, gridPointsPosBuffer);
   // Set the vertex attribute to the size of each individual element (x,y,z)

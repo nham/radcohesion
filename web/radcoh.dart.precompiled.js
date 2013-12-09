@@ -2265,49 +2265,39 @@ programSetup: function(gl) {
 },
 
 genGridPointList: function() {
-  var x, y, u1, t1, u2, u3, a, i, t2, rm, tm;
+  var t1, t2, x, y, u1, t3, u2, u3, v, a, i, rm, tm;
+  t1 = new E.genGridPointList_scaleV();
+  t2 = new E.genGridPointList_addV();
   x = Math.cos(1.0471975511965976);
   y = Math.sin(1.0471975511965976);
   u1 = [1, 0, 0];
-  t1 = -x;
-  u2 = [t1, y, 0];
-  u3 = [t1, -y, 0];
-  t1 = new E.genGridPointList_scaleV();
+  t3 = -x;
+  u2 = [t3, y, 0];
+  u3 = [t3, -y, 0];
+  v = [-1.5, -1.5 / Math.tan(1.0471975511965976), 0];
   a = P.List_List(null, null);
   for (i = 0; i < 5; ++i) {
-    x = t1.call$2(u1, i * 1);
-    t2 = J.getInterceptor$asx(x);
-    a.push(t2.$index(x, 0));
-    a.push(t2.$index(x, 1));
-    a.push(t2.$index(x, 2));
+    x = t2.call$2(t1.call$2(u1, i * 0.75), v);
+    t3 = J.getInterceptor$asx(x);
+    a.push(t3.$index(x, 0));
+    a.push(t3.$index(x, 1));
+    a.push(t3.$index(x, 2));
   }
   rm = C.JSArray_methods.sublist$2(a, 12, 15);
   for (i = 1; i < 5; ++i) {
-    x = t1.call$2(u2, i * 1);
-    if (0 >= rm.length)
-      throw H.ioore(rm, 0);
-    t2 = J.getInterceptor$asx(x);
-    a.push(J.$add$ns(rm[0], t2.$index(x, 0)));
-    if (1 >= rm.length)
-      throw H.ioore(rm, 1);
-    a.push(J.$add$ns(rm[1], t2.$index(x, 1)));
-    if (2 >= rm.length)
-      throw H.ioore(rm, 2);
-    a.push(J.$add$ns(rm[2], t2.$index(x, 2)));
+    x = t2.call$2(t1.call$2(u2, i * 0.75), rm);
+    t3 = J.getInterceptor$asx(x);
+    a.push(t3.$index(x, 0));
+    a.push(t3.$index(x, 1));
+    a.push(t3.$index(x, 2));
   }
   tm = C.JSArray_methods.sublist$2(a, 24, 27);
   for (i = 1; i < 4; ++i) {
-    x = t1.call$2(u3, i * 1);
-    if (0 >= tm.length)
-      throw H.ioore(tm, 0);
-    t2 = J.getInterceptor$asx(x);
-    a.push(J.$add$ns(tm[0], t2.$index(x, 0)));
-    if (1 >= tm.length)
-      throw H.ioore(tm, 1);
-    a.push(J.$add$ns(tm[1], t2.$index(x, 1)));
-    if (2 >= tm.length)
-      throw H.ioore(tm, 2);
-    a.push(J.$add$ns(tm[2], t2.$index(x, 2)));
+    x = t2.call$2(t1.call$2(u3, i * 0.75), tm);
+    t3 = J.getInterceptor$asx(x);
+    a.push(t3.$index(x, 0));
+    a.push(t3.$index(x, 1));
+    a.push(t3.$index(x, 2));
   }
   return a;
 },
@@ -2343,7 +2333,7 @@ drawScene: function(gl, prog, aspect) {
   t2.$dartCachedLength = t2.length;
   t1.push(new E.Matrix4(t2));
   t2 = $.mvMatrix;
-  t2.translate$1(t2, [-2, -1.5, -6]);
+  t2.translate$1(t2, [0, 0, -9]);
   gl.bindBuffer(34962, $.gridPointsPosBuffer);
   t2 = prog.attributes;
   gl.vertexAttribPointer(t2.$index(t2, "aVertexPosition"), 3, 5126, false, 0, 0);
@@ -2581,6 +2571,15 @@ genGridPointList_scaleV: {"": "Closure;",
     t1 = J.getInterceptor$asx(xs);
     t2 = J.getInterceptor$n(c);
     return [t2.$mul(c, t1.$index(xs, 0)), t2.$mul(c, t1.$index(xs, 1)), t2.$mul(c, t1.$index(xs, 2))];
+  }
+},
+
+genGridPointList_addV: {"": "Closure;",
+  call$2: function(u, v) {
+    var t1, t2;
+    t1 = J.getInterceptor$asx(u);
+    t2 = J.getInterceptor$asx(v);
+    return [J.$add$ns(t1.$index(u, 0), t2.$index(v, 0)), J.$add$ns(t1.$index(u, 1), t2.$index(v, 1)), J.$add$ns(t1.$index(u, 2), t2.$index(v, 2))];
   }
 }},
 1],
@@ -5936,6 +5935,15 @@ function dart_precompiled($collectedClasses) {
   if ($desc instanceof Array)
     $desc = $desc[1];
   genGridPointList_scaleV.prototype = $desc;
+  function genGridPointList_addV() {
+  }
+  genGridPointList_addV.builtin$cls = "genGridPointList_addV";
+  if (!"name" in genGridPointList_addV)
+    genGridPointList_addV.name = "genGridPointList_addV";
+  $desc = $collectedClasses.genGridPointList_addV;
+  if ($desc instanceof Array)
+    $desc = $desc[1];
+  genGridPointList_addV.prototype = $desc;
   function Closure$0(call$0, $name) {
     this.call$0 = call$0;
     this.$name = $name;
@@ -5972,5 +5980,5 @@ function dart_precompiled($collectedClasses) {
   if ($desc instanceof Array)
     $desc = $desc[1];
   Closure$1.prototype = $desc;
-  return [HtmlElement, AnchorElement, AreaElement, AudioElement, AutocompleteErrorEvent, BRElement, BaseElement, BodyElement, ButtonElement, CDataSection, CanvasElement, CanvasRenderingContext, CanvasRenderingContext2D, CharacterData, Comment, ContentElement, DListElement, DataListElement, DetailsElement, DialogElement, DivElement, Document, DocumentFragment, DocumentType, DomError, DomException, Element, EmbedElement, ErrorEvent, Event, EventTarget, FieldSetElement, FileError, FormElement, HRElement, HeadElement, HeadingElement, HtmlDocument, HtmlHtmlElement, IFrameElement, ImageElement, InputElement, KeygenElement, LIElement, LabelElement, LegendElement, LinkElement, MapElement, MediaElement, MediaError, MediaKeyError, MenuElement, MetaElement, MeterElement, ModElement, Navigator, NavigatorUserMediaError, Node, OListElement, ObjectElement, OptGroupElement, OptionElement, OutputElement, ParagraphElement, ParamElement, PositionError, PreElement, ProcessingInstruction, ProgressElement, QuoteElement, ScriptElement, SelectElement, ShadowElement, ShadowRoot, SourceElement, SpanElement, SpeechRecognitionError, StyleElement, TableCaptionElement, TableCellElement, TableColElement, TableElement, TableRowElement, TableSectionElement, TemplateElement, Text, TextAreaElement, TitleElement, TrackElement, UListElement, UnknownElement, VideoElement, Window, _Attr, _Entity, _HTMLAppletElement, _HTMLBaseFontElement, _HTMLDirectoryElement, _HTMLFontElement, _HTMLFrameElement, _HTMLFrameSetElement, _HTMLMarqueeElement, _NamedNodeMap, _Notation, AElement, AltGlyphElement, AnimateElement, AnimateMotionElement, AnimateTransformElement, AnimatedLength, AnimationElement, CircleElement, ClipPathElement, DefsElement, DescElement, EllipseElement, FEBlendElement, FEColorMatrixElement, FEComponentTransferElement, FECompositeElement, FEConvolveMatrixElement, FEDiffuseLightingElement, FEDisplacementMapElement, FEDistantLightElement, FEFloodElement, FEFuncAElement, FEFuncBElement, FEFuncGElement, FEFuncRElement, FEGaussianBlurElement, FEImageElement, FEMergeElement, FEMergeNodeElement, FEMorphologyElement, FEOffsetElement, FEPointLightElement, FESpecularLightingElement, FESpotLightElement, FETileElement, FETurbulenceElement, FilterElement, ForeignObjectElement, GElement, GraphicsElement, ImageElement0, LineElement, LinearGradientElement, MarkerElement, MaskElement, MetadataElement, PathElement, PatternElement, PolygonElement, PolylineElement, RadialGradientElement, Rect, RectElement, ScriptElement0, SetElement, StopElement, StyleElement0, SvgDocument, SvgElement, SvgSvgElement, SwitchElement, SymbolElement, TSpanElement, TextContentElement, TextElement, TextPathElement, TextPositioningElement, TitleElement0, UseElement, ViewElement, _GradientElement, _SVGAltGlyphDefElement, _SVGAltGlyphItemElement, _SVGAnimateColorElement, _SVGComponentTransferFunctionElement, _SVGCursorElement, _SVGFEDropShadowElement, _SVGFontElement, _SVGFontFaceElement, _SVGFontFaceFormatElement, _SVGFontFaceNameElement, _SVGFontFaceSrcElement, _SVGFontFaceUriElement, _SVGGlyphElement, _SVGGlyphRefElement, _SVGHKernElement, _SVGMPathElement, _SVGMissingGlyphElement, _SVGVKernElement, Buffer, Program, RenderingContext, Shader, UniformLocation, SqlError, TypedData, Float32List, Uint16List, JS_CONST, Interceptor, JSBool, JSNull, JavaScriptObject, PlainJavaScriptObject, UnknownJavaScriptObject, JSArray, JSMutableArray, JSFixedArray, JSExtendableArray, JSNumber, JSInt, JSDouble, JSString, TypeErrorDecoder, NullError, JsNoSuchMethodError, UnknownJsTypeError, unwrapException_saveStackTrace, invokeClosure_closure, invokeClosure_closure0, invokeClosure_closure1, invokeClosure_closure2, invokeClosure_closure3, Closure, initHooks_closure, initHooks_closure0, initHooks_closure1, ListIterator, FixedLengthListMixin, _LinkedHashMap, LinkedHashMapCell, _HashSet, _IdentityHashSet, HashSetIterator, _HashSetBase, IterableBase, ListMixin, Maps_mapToString_closure, NoSuchMethodError_toString_closure, Error, NullThrownError, ArgumentError, RangeError, UnimplementedError, ConcurrentModificationError, StackOverflowError, CyclicInitializationError, _ExceptionImplementation, Null, Object, StringBuffer, Interceptor_ListMixin, Interceptor_ListMixin_ImmutableListMixin, ImmutableListMixin, FixedSizeListIterator, TypedData_ListMixin, TypedData_ListMixin_FixedLengthListMixin, TypedData_ListMixin0, TypedData_ListMixin_FixedLengthListMixin0, convertDartToNative_Dictionary_closure, GlProgram, Matrix4, genGridPointList_scaleV, Closure$0, Closure$7, Closure$2, Closure$1];
+  return [HtmlElement, AnchorElement, AreaElement, AudioElement, AutocompleteErrorEvent, BRElement, BaseElement, BodyElement, ButtonElement, CDataSection, CanvasElement, CanvasRenderingContext, CanvasRenderingContext2D, CharacterData, Comment, ContentElement, DListElement, DataListElement, DetailsElement, DialogElement, DivElement, Document, DocumentFragment, DocumentType, DomError, DomException, Element, EmbedElement, ErrorEvent, Event, EventTarget, FieldSetElement, FileError, FormElement, HRElement, HeadElement, HeadingElement, HtmlDocument, HtmlHtmlElement, IFrameElement, ImageElement, InputElement, KeygenElement, LIElement, LabelElement, LegendElement, LinkElement, MapElement, MediaElement, MediaError, MediaKeyError, MenuElement, MetaElement, MeterElement, ModElement, Navigator, NavigatorUserMediaError, Node, OListElement, ObjectElement, OptGroupElement, OptionElement, OutputElement, ParagraphElement, ParamElement, PositionError, PreElement, ProcessingInstruction, ProgressElement, QuoteElement, ScriptElement, SelectElement, ShadowElement, ShadowRoot, SourceElement, SpanElement, SpeechRecognitionError, StyleElement, TableCaptionElement, TableCellElement, TableColElement, TableElement, TableRowElement, TableSectionElement, TemplateElement, Text, TextAreaElement, TitleElement, TrackElement, UListElement, UnknownElement, VideoElement, Window, _Attr, _Entity, _HTMLAppletElement, _HTMLBaseFontElement, _HTMLDirectoryElement, _HTMLFontElement, _HTMLFrameElement, _HTMLFrameSetElement, _HTMLMarqueeElement, _NamedNodeMap, _Notation, AElement, AltGlyphElement, AnimateElement, AnimateMotionElement, AnimateTransformElement, AnimatedLength, AnimationElement, CircleElement, ClipPathElement, DefsElement, DescElement, EllipseElement, FEBlendElement, FEColorMatrixElement, FEComponentTransferElement, FECompositeElement, FEConvolveMatrixElement, FEDiffuseLightingElement, FEDisplacementMapElement, FEDistantLightElement, FEFloodElement, FEFuncAElement, FEFuncBElement, FEFuncGElement, FEFuncRElement, FEGaussianBlurElement, FEImageElement, FEMergeElement, FEMergeNodeElement, FEMorphologyElement, FEOffsetElement, FEPointLightElement, FESpecularLightingElement, FESpotLightElement, FETileElement, FETurbulenceElement, FilterElement, ForeignObjectElement, GElement, GraphicsElement, ImageElement0, LineElement, LinearGradientElement, MarkerElement, MaskElement, MetadataElement, PathElement, PatternElement, PolygonElement, PolylineElement, RadialGradientElement, Rect, RectElement, ScriptElement0, SetElement, StopElement, StyleElement0, SvgDocument, SvgElement, SvgSvgElement, SwitchElement, SymbolElement, TSpanElement, TextContentElement, TextElement, TextPathElement, TextPositioningElement, TitleElement0, UseElement, ViewElement, _GradientElement, _SVGAltGlyphDefElement, _SVGAltGlyphItemElement, _SVGAnimateColorElement, _SVGComponentTransferFunctionElement, _SVGCursorElement, _SVGFEDropShadowElement, _SVGFontElement, _SVGFontFaceElement, _SVGFontFaceFormatElement, _SVGFontFaceNameElement, _SVGFontFaceSrcElement, _SVGFontFaceUriElement, _SVGGlyphElement, _SVGGlyphRefElement, _SVGHKernElement, _SVGMPathElement, _SVGMissingGlyphElement, _SVGVKernElement, Buffer, Program, RenderingContext, Shader, UniformLocation, SqlError, TypedData, Float32List, Uint16List, JS_CONST, Interceptor, JSBool, JSNull, JavaScriptObject, PlainJavaScriptObject, UnknownJavaScriptObject, JSArray, JSMutableArray, JSFixedArray, JSExtendableArray, JSNumber, JSInt, JSDouble, JSString, TypeErrorDecoder, NullError, JsNoSuchMethodError, UnknownJsTypeError, unwrapException_saveStackTrace, invokeClosure_closure, invokeClosure_closure0, invokeClosure_closure1, invokeClosure_closure2, invokeClosure_closure3, Closure, initHooks_closure, initHooks_closure0, initHooks_closure1, ListIterator, FixedLengthListMixin, _LinkedHashMap, LinkedHashMapCell, _HashSet, _IdentityHashSet, HashSetIterator, _HashSetBase, IterableBase, ListMixin, Maps_mapToString_closure, NoSuchMethodError_toString_closure, Error, NullThrownError, ArgumentError, RangeError, UnimplementedError, ConcurrentModificationError, StackOverflowError, CyclicInitializationError, _ExceptionImplementation, Null, Object, StringBuffer, Interceptor_ListMixin, Interceptor_ListMixin_ImmutableListMixin, ImmutableListMixin, FixedSizeListIterator, TypedData_ListMixin, TypedData_ListMixin_FixedLengthListMixin, TypedData_ListMixin0, TypedData_ListMixin_FixedLengthListMixin0, convertDartToNative_Dictionary_closure, GlProgram, Matrix4, genGridPointList_scaleV, genGridPointList_addV, Closure$0, Closure$7, Closure$2, Closure$1];
 }
