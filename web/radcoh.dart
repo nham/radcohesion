@@ -38,7 +38,8 @@ void main() {
   void animate(num now) {
     if (lastTime != 0) {
       var elapsed = now - lastTime;
-      triGrid.ang += (90 * elapsed) / 1200.0;
+      triGrid.ang += (60 * elapsed) / 1000.0;
+      tetra.ang += (10 * elapsed) / 1000.0;
     }
     
     lastTime = now;
@@ -231,8 +232,6 @@ void gridBufferSetup(RenderingContext gl) {
 }
 
 
-Buffer tetraPosBuffer, tetraIndexBuffer, tetraColorBuffer;
-
 void tetraBufferSetup(RenderingContext gl) {
   //TODO refactor so we dont repeat all this? meh, this separate buffer is temporary
   scaleV (xs, c) => [c * xs[0], c * xs[1], c * xs[2]];
@@ -279,18 +278,23 @@ void tetraBufferSetup(RenderingContext gl) {
   print(a);
   
   
-  tetraPosBuffer = gl.createBuffer();
-  gl.bindBuffer(ARRAY_BUFFER, tetraPosBuffer);
+  Buffer pbuf, ibuf, cbuf;
+
+  pbuf = gl.createBuffer();
+  ibuf = gl.createBuffer();
+  cbuf = gl.createBuffer();
+  tetra = new Figure(pbuf, ibuf, cbuf, [0.0, -3.0, -18.0], 0.0);
+
+  
+  gl.bindBuffer(ARRAY_BUFFER, pbuf);
   gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(a), STATIC_DRAW);
   
-  tetraIndexBuffer = gl.createBuffer();
-  gl.bindBuffer(ELEMENT_ARRAY_BUFFER, tetraIndexBuffer);
   
   var gridPointsIndices = [ 0,  1,  2,   3,  4,  5,
                             6,  7,  8,   9, 10, 11
                           ];
   
-  // Now send the element array to GL
+  gl.bindBuffer(ELEMENT_ARRAY_BUFFER, ibuf);
   gl.bufferDataTyped(ELEMENT_ARRAY_BUFFER, 
       new Uint16List.fromList(gridPointsIndices), STATIC_DRAW);
   
@@ -311,8 +315,7 @@ void tetraBufferSetup(RenderingContext gl) {
                 ];
   
   print("lens: ${a.length}, ${colors.length}");
-  tetraColorBuffer = gl.createBuffer();
-  gl.bindBuffer(ARRAY_BUFFER, tetraColorBuffer);
+  gl.bindBuffer(ARRAY_BUFFER, cbuf);
   gl.bufferData(ARRAY_BUFFER, new Float32List.fromList(colors), STATIC_DRAW);
 }
 
@@ -375,19 +378,21 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   
   grid_mvPopMatrix();
   
-
+  
+  // and now we tetra
   tetra_mvPushMatrix();
 
-  tetra_mvMatrix.translate([0.0, -4.0, -9.0]);
+  tetra_mvMatrix.translate(tetra.pos);
+  tetra_mvMatrix.rotateY(radians(tetra.ang));
   
-  gl.bindBuffer(ARRAY_BUFFER, tetraPosBuffer);
+  gl.bindBuffer(ARRAY_BUFFER, tetra.posBuf);
   // Set the vertex attribute to the size of each individual element (x,y,z)
   gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
   
-  gl.bindBuffer(ELEMENT_ARRAY_BUFFER, tetraIndexBuffer);
+  gl.bindBuffer(ELEMENT_ARRAY_BUFFER, tetra.indexBuf);
   gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
 
-  gl.bindBuffer(ARRAY_BUFFER, tetraColorBuffer);
+  gl.bindBuffer(ARRAY_BUFFER, tetra.colorBuf);
   gl.vertexAttribPointer(prog.attributes['aVertexColor'], 4, FLOAT, false, 0, 0);
   
   
