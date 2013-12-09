@@ -30,8 +30,15 @@ void main() {
   
   gridBufferSetup(gl);
   tetraBufferSetup(gl);
-  drawScene(gl, p, canvas.width / canvas.height);
+  
+  // TODO: read about animationFrame and Futures, which is "the preferred Dart idiom"
+  tick (t) {
+   window.requestAnimationFrame(tick);
+   drawScene(gl, p, canvas.width / canvas.height);
+  }
+  tick(0);
 }
+
 
 RenderingContext glContextSetup(CanvasElement canvas) {
   RenderingContext gl = canvas.getContext3d();
