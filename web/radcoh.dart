@@ -222,7 +222,7 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   // First stash the current model view matrix before we start moving around.
   mvPushMatrix();
 
-  mvMatrix.translate([-2, -1.5, -6.0]);
+  mvMatrix.translate([-2, -1.5, -9.0]);
 
   gl.bindBuffer(ARRAY_BUFFER, gridPointsPosBuffer);
   // Set the vertex attribute to the size of each individual element (x,y,z)
