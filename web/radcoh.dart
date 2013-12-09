@@ -12,6 +12,7 @@ part 'matrix4.dart';
 part 'gl_program.dart';
 
 
+Figure triGrid, tetra;
 
 void main() {
   mvMatrix = new Matrix4()..identity();
@@ -90,9 +91,6 @@ GlProgram programSetup(RenderingContext gl) {
 }
 
 
-// the main buffer(s)
-Buffer gridPointsPosBuffer, gridPointsIndexBuffer, gridPointsColorBuffer;
-
 List<double> genGridPointList() {
   /*
    *  Please examine this terrible ASCII triangle to become confused. These are the
@@ -165,14 +163,20 @@ void gridBufferSetup(RenderingContext gl) {
 
   // I'm also not sure what STATIC_DRAW is and how it compares to other options!
 
-  var a = genGridPointList();
+  
+  Buffer pbuf, ibuf, cbuf;
 
-  gridPointsPosBuffer = gl.createBuffer();
-  gl.bindBuffer(ARRAY_BUFFER, gridPointsPosBuffer);
+  pbuf = gl.createBuffer();
+  ibuf = gl.createBuffer();
+  cbuf = gl.createBuffer();
+  triGrid = new Figure(pbuf, ibuf, cbuf, [0.0, 1.8, -9.0], 0.0);
+
+  
+  var a = genGridPointList();  
+  
+  gl.bindBuffer(ARRAY_BUFFER, pbuf);
   gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(a), STATIC_DRAW);
   
-  gridPointsIndexBuffer = gl.createBuffer();
-  gl.bindBuffer(ELEMENT_ARRAY_BUFFER, gridPointsIndexBuffer);
   
   var gridPointsIndices = [0, 4, 4, 8, 8, 0, // outer vertices of triangle
       1, 7,  1, 11, // lines involving 1
@@ -182,7 +186,7 @@ void gridBufferSetup(RenderingContext gl) {
       6, 10,
       7, 9];
   
-  // Now send the element array to GL
+  gl.bindBuffer(ELEMENT_ARRAY_BUFFER, ibuf);
   gl.bufferDataTyped(ELEMENT_ARRAY_BUFFER, 
       new Uint16List.fromList(gridPointsIndices), STATIC_DRAW);
   
@@ -202,8 +206,7 @@ void gridBufferSetup(RenderingContext gl) {
                 ];
   
   print("lens: ${a.length}, ${colors.length}");
-  gridPointsColorBuffer = gl.createBuffer();
-  gl.bindBuffer(ARRAY_BUFFER, gridPointsColorBuffer);
+  gl.bindBuffer(ARRAY_BUFFER, cbuf);
   gl.bufferData(ARRAY_BUFFER, new Float32List.fromList(colors), STATIC_DRAW);
 
   
@@ -302,6 +305,17 @@ void tetraBufferSetup(RenderingContext gl) {
 }
 
 
+class Figure {
+  Buffer posBuf, indexBuf, colorBuf;
+  List <double> pos;
+  double rot;
+  
+  Figure(this.posBuf, this.indexBuf, this.colorBuf, this.pos, this.rot);
+    
+}
+
+
+
 /// Perspective matrix
 Matrix4 pMatrix;
 /// Model-View matrix.
@@ -324,16 +338,16 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   // First stash the current model view matrix before we start moving around.
   mvPushMatrix();
 
-  mvMatrix.translate([0.0, 1.8, -9.0]);
+  mvMatrix.translate(triGrid.pos);
 
-  gl.bindBuffer(ARRAY_BUFFER, gridPointsPosBuffer);
+  gl.bindBuffer(ARRAY_BUFFER, triGrid.posBuf);
   // Set the vertex attribute to the size of each individual element (x,y,z)
   gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
   
-  gl.bindBuffer(ELEMENT_ARRAY_BUFFER, gridPointsIndexBuffer);
+  gl.bindBuffer(ELEMENT_ARRAY_BUFFER, triGrid.indexBuf);
   gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
 
-  gl.bindBuffer(ARRAY_BUFFER, gridPointsColorBuffer);
+  gl.bindBuffer(ARRAY_BUFFER, triGrid.colorBuf);
   gl.vertexAttribPointer(prog.attributes['aVertexColor'], 4, FLOAT, false, 0, 0);
   
   
