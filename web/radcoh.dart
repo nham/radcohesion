@@ -15,7 +15,8 @@ part 'gl_program.dart';
 Figure triGrid, tetra;
 
 void main() {
-  mvMatrix = new Matrix4()..identity();
+  grid_mvMatrix = new Matrix4()..identity();
+  tetra_mvMatrix = new Matrix4()..identity();
   CanvasElement canvas = querySelector("#the-haps");
   
   RenderingContext gl;
@@ -32,14 +33,25 @@ void main() {
   gridBufferSetup(gl);
   tetraBufferSetup(gl);
   
+  // a closure to keep the last time!
+  num lastTime = 0;
+  void animate(num now) {
+    if (lastTime != 0) {
+      var elapsed = now - lastTime;
+      triGrid.ang += (90 * elapsed) / 1200.0;
+    }
+    
+    lastTime = now;
+  }
+  
   // TODO: read about animationFrame and Futures, which is "the preferred Dart idiom"
   tick (t) {
    window.requestAnimationFrame(tick);
+   animate(t);
    drawScene(gl, p, canvas.width / canvas.height);
   }
   tick(0);
 }
-
 
 RenderingContext glContextSetup(CanvasElement canvas) {
   RenderingContext gl = canvas.getContext3d();
@@ -308,9 +320,9 @@ void tetraBufferSetup(RenderingContext gl) {
 class Figure {
   Buffer posBuf, indexBuf, colorBuf;
   List <double> pos;
-  double rot;
+  double ang;
   
-  Figure(this.posBuf, this.indexBuf, this.colorBuf, this.pos, this.rot);
+  Figure(this.posBuf, this.indexBuf, this.colorBuf, this.pos, this.ang);
     
 }
 
@@ -318,13 +330,18 @@ class Figure {
 
 /// Perspective matrix
 Matrix4 pMatrix;
-/// Model-View matrix.
-Matrix4 mvMatrix;
+/// Model-View matrices
+Matrix4 grid_mvMatrix;
+Matrix4 tetra_mvMatrix;
 List<Matrix4> mvStack = new List<Matrix4>();
 
 // fat stacks
-mvPushMatrix() => mvStack.add(new Matrix4.fromMatrix(mvMatrix));
-mvPopMatrix() => mvMatrix = mvStack.removeLast();
+grid_mvPushMatrix() => mvStack.add(new Matrix4.fromMatrix(grid_mvMatrix));
+grid_mvPopMatrix() => grid_mvMatrix = mvStack.removeLast();
+
+tetra_mvPushMatrix() => mvStack.add(new Matrix4.fromMatrix(tetra_mvMatrix));
+tetra_mvPopMatrix() => tetra_mvMatrix = mvStack.removeLast();
+
 
 void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   // webgl documentation says "clear buffers to preset values"
@@ -336,9 +353,10 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   pMatrix = Matrix4.perspective(45.0, aspect, 0.1, 100.0);
   
   // First stash the current model view matrix before we start moving around.
-  mvPushMatrix();
+  grid_mvPushMatrix();
 
-  mvMatrix.translate(triGrid.pos);
+  grid_mvMatrix.translate(triGrid.pos);
+  grid_mvMatrix.rotateZ(radians(triGrid.ang));
 
   gl.bindBuffer(ARRAY_BUFFER, triGrid.posBuf);
   // Set the vertex attribute to the size of each individual element (x,y,z)
@@ -352,12 +370,15 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   
   
   gl.uniformMatrix4fv(prog.uniforms['uPMatrix'], false, pMatrix.buf);
-  gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, mvMatrix.buf);
+  gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, grid_mvMatrix.buf);
   gl.drawElements(LINES, 24, UNSIGNED_SHORT, 0);
   
+  grid_mvPopMatrix();
   
 
-  mvMatrix.translate([0.0, -4.0, -9.0]);
+  tetra_mvPushMatrix();
+
+  tetra_mvMatrix.translate([0.0, -4.0, -9.0]);
   
   gl.bindBuffer(ARRAY_BUFFER, tetraPosBuffer);
   // Set the vertex attribute to the size of each individual element (x,y,z)
@@ -371,10 +392,11 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   
   
   gl.uniformMatrix4fv(prog.uniforms['uPMatrix'], false, pMatrix.buf);
-  gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, mvMatrix.buf);
+  gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, tetra_mvMatrix.buf);
   gl.drawElements(TRIANGLES, 12, UNSIGNED_SHORT, 0);
 
   
 // Finally, reset the matrix back to what it was before we moved around.
-  mvPopMatrix();
+  tetra_mvPopMatrix();
+
 }
