@@ -2238,7 +2238,8 @@ main: function() {
 
   p = E.programSetup(gl);
   J.useProgram$1$x(gl, p.program);
-  E.bufferSetup(gl);
+  E.gridBufferSetup(gl);
+  E.tetraBufferSetup(gl);
   t1 = J.get$width$x(canvas);
   t2 = J.get$height$x(canvas);
   if (typeof t1 !== "number")
@@ -2274,10 +2275,10 @@ genGridPointList: function() {
   t3 = -x;
   u2 = [t3, y, 0];
   u3 = [t3, -y, 0];
-  v = [-1.5, -1.5 / Math.tan(1.0471975511965976), 0];
+  v = [-1.6, -1.6 / Math.tan(1.0471975511965976), 0];
   a = P.List_List(null, null);
   for (i = 0; i < 5; ++i) {
-    x = t2.call$2(t1.call$2(u1, i * 0.75), v);
+    x = t2.call$2(t1.call$2(u1, i * 0.8), v);
     t3 = J.getInterceptor$asx(x);
     a.push(t3.$index(x, 0));
     a.push(t3.$index(x, 1));
@@ -2285,7 +2286,7 @@ genGridPointList: function() {
   }
   rm = C.JSArray_methods.sublist$2(a, 12, 15);
   for (i = 1; i < 5; ++i) {
-    x = t2.call$2(t1.call$2(u2, i * 0.75), rm);
+    x = t2.call$2(t1.call$2(u2, i * 0.8), rm);
     t3 = J.getInterceptor$asx(x);
     a.push(t3.$index(x, 0));
     a.push(t3.$index(x, 1));
@@ -2293,7 +2294,7 @@ genGridPointList: function() {
   }
   tm = C.JSArray_methods.sublist$2(a, 24, 27);
   for (i = 1; i < 4; ++i) {
-    x = t2.call$2(t1.call$2(u3, i * 0.75), tm);
+    x = t2.call$2(t1.call$2(u3, i * 0.8), tm);
     t3 = J.getInterceptor$asx(x);
     a.push(t3.$index(x, 0));
     a.push(t3.$index(x, 1));
@@ -2302,7 +2303,7 @@ genGridPointList: function() {
   return a;
 },
 
-bufferSetup: function(gl) {
+gridBufferSetup: function(gl) {
   var a, t1, colors;
   a = E.genGridPointList();
   $.gridPointsPosBuffer = gl.createBuffer();
@@ -2324,6 +2325,42 @@ bufferSetup: function(gl) {
   gl.bufferData(34962, t1, 35044);
 },
 
+tetraBufferSetup: function(gl) {
+  var t1, t2, x, y, t3, u4, a, w, t4;
+  t1 = new E.tetraBufferSetup_scaleV();
+  t2 = new E.tetraBufferSetup_addV();
+  x = Math.cos(1.0471975511965976);
+  y = Math.sin(1.0471975511965976);
+  Math.tan(1.0471975511965976);
+  t3 = -x;
+  u4 = t1.call$2([t3, y, y], 2 / Math.sqrt(7));
+  a = P.List_List(null, null);
+  a.push(0);
+  a.push(0);
+  a.push(0);
+  w = t1.call$2([1, 0, 0], 3);
+  t4 = J.getInterceptor$asx(w);
+  a.push(t4.$index(w, 0));
+  a.push(t4.$index(w, 1));
+  a.push(t4.$index(w, 2));
+  w = t2.call$2(w, t1.call$2([t3, y, 0], 3));
+  t4 = J.getInterceptor$asx(w);
+  a.push(t4.$index(w, 0));
+  a.push(t4.$index(w, 1));
+  a.push(t4.$index(w, 2));
+  w = t2.call$2(w, t1.call$2([t3, -y, 0], 3));
+  t3 = J.getInterceptor$asx(w);
+  a.push(t3.$index(w, 0));
+  a.push(t3.$index(w, 1));
+  a.push(t3.$index(w, 2));
+  w = t1.call$2(u4, 3);
+  t1 = J.getInterceptor$asx(w);
+  a.push(t1.$index(w, 0));
+  a.push(t1.$index(w, 1));
+  a.push(t1.$index(w, 2));
+  P.print(a);
+},
+
 drawScene: function(gl, prog, aspect) {
   var t1, t2;
   gl.clear(16640);
@@ -2333,7 +2370,7 @@ drawScene: function(gl, prog, aspect) {
   t2.$dartCachedLength = t2.length;
   t1.push(new E.Matrix4(t2));
   t2 = $.mvMatrix;
-  t2.translate$1(t2, [0, 0, -9]);
+  t2.translate$1(t2, [0, 1.8, -9]);
   gl.bindBuffer(34962, $.gridPointsPosBuffer);
   t2 = prog.attributes;
   gl.vertexAttribPointer(t2.$index(t2, "aVertexPosition"), 3, 5126, false, 0, 0);
@@ -2575,6 +2612,24 @@ genGridPointList_scaleV: {"": "Closure;",
 },
 
 genGridPointList_addV: {"": "Closure;",
+  call$2: function(u, v) {
+    var t1, t2;
+    t1 = J.getInterceptor$asx(u);
+    t2 = J.getInterceptor$asx(v);
+    return [J.$add$ns(t1.$index(u, 0), t2.$index(v, 0)), J.$add$ns(t1.$index(u, 1), t2.$index(v, 1)), J.$add$ns(t1.$index(u, 2), t2.$index(v, 2))];
+  }
+},
+
+tetraBufferSetup_scaleV: {"": "Closure;",
+  call$2: function(xs, c) {
+    var t1, t2;
+    t1 = J.getInterceptor$asx(xs);
+    t2 = J.getInterceptor$n(c);
+    return [t2.$mul(c, t1.$index(xs, 0)), t2.$mul(c, t1.$index(xs, 1)), t2.$mul(c, t1.$index(xs, 2))];
+  }
+},
+
+tetraBufferSetup_addV: {"": "Closure;",
   call$2: function(u, v) {
     var t1, t2;
     t1 = J.getInterceptor$asx(u);

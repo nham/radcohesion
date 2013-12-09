@@ -28,7 +28,8 @@ void main() {
   var p = programSetup(gl);
   gl.useProgram(p.program);
   
-  bufferSetup(gl);
+  gridBufferSetup(gl);
+  tetraBufferSetup(gl);
   drawScene(gl, p, canvas.width / canvas.height);
 }
 
@@ -83,7 +84,7 @@ GlProgram programSetup(RenderingContext gl) {
 
 
 // the main buffer(s)
-Buffer gridPointsPosBuffer, gridPointsIndexBuffer, gridPointsColorBuffer;//gridShapeIndexBuffer;
+Buffer gridPointsPosBuffer, gridPointsIndexBuffer, gridPointsColorBuffer;
 
 List<double> genGridPointList() {
   /*
@@ -111,7 +112,7 @@ List<double> genGridPointList() {
   // we aren't using Vector3 because it internally uses Float32List, which is a
   // fixed length list, and I'm not sure how to do what I need to do with that.
   
-  double s = 4.0;
+  double s = 3.2;
   double hs = s / 2;
   double sc = s / 4; // used scale u1 through u3 when generating the coords
   
@@ -149,7 +150,7 @@ List<double> genGridPointList() {
   return a;
 }
 
-void bufferSetup(RenderingContext gl) {
+void gridBufferSetup(RenderingContext gl) {
   // I think there's a notion of a "current" array buffer, whatever an array buffer is
   // and all buffer operations to array buffers apply only to the current one?
   // so bindBuffer tells us that for all the buffer stuff that follows, we'll be using
@@ -207,6 +208,60 @@ void bufferSetup(RenderingContext gl) {
   */
 }
 
+
+Buffer tetraPosBuffer, tetraIndexBuffer, tetraColorBuffer;
+
+void tetraBufferSetup(RenderingContext gl) {
+  //TODO refactor so we dont repeat all this? meh, this separate buffer is temporary
+  scaleV (xs, c) => [c * xs[0], c * xs[1], c * xs[2]];
+  
+  addV (u, v) => [u[0] + v[0], u[1] + v[1], u[2] + v[2]];
+  
+  double x = cos(PI/3);
+  double y = sin(PI/3);
+  double sl = tan(PI/3);
+  
+  double s = 3.0;
+  double hs = s / 2;
+  double sc = s / 4; // used scale u1 through u3 when generating the coords
+  
+  List<double> u1 = [1.0, 0.0, 0.0]; // on bottom, from the leftmost going to rightmost
+  List<double> u2 = [ -x,   y, 0.0]; // on bottom, from the rightmost going to topmost
+  List<double> u3 = [ -x,  -y, 0.0]; // on bottom, from the topmost going to leftmost
+  List<double> u4 = scaleV([ -x,   y,   y], 2/sqrt(7)); // from bottom leftmost to the apex
+  
+  List<double> a = new List();
+
+  a..add(0.0)..add(0.0)..add(0.0);
+  
+  var w = scaleV(u1, s);
+  a..add(w[0])..add(w[1])..add(w[2]);
+  
+  w = addV(w, scaleV(u2, s));
+  a..add(w[0])..add(w[1])..add(w[2]);
+  
+  w = scaleV(u4, s);
+  a..add(w[0])..add(w[1])..add(w[2]);
+  
+  print(a);
+  
+  
+  tetraPosBuffer = gl.createBuffer();
+  gl.bindBuffer(ARRAY_BUFFER, tetraPosBuffer);
+  gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(a), STATIC_DRAW);
+  
+  tetraIndexBuffer = gl.createBuffer();
+  gl.bindBuffer(ELEMENT_ARRAY_BUFFER, tetraIndexBuffer);
+  
+  var gridPointsIndices = [0, 1, 2,  0, 1, 3, 
+                           1, 2, 3,  0, 2, 3];
+  
+  // Now send the element array to GL
+  gl.bufferDataTyped(ELEMENT_ARRAY_BUFFER, 
+      new Uint16List.fromList(gridPointsIndices), STATIC_DRAW);
+}
+
+
 /// Perspective matrix
 Matrix4 pMatrix;
 /// Model-View matrix.
@@ -229,7 +284,7 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   // First stash the current model view matrix before we start moving around.
   mvPushMatrix();
 
-  mvMatrix.translate([0.0, 0.0, -9.0]);
+  mvMatrix.translate([0.0, 1.8, -9.0]);
 
   gl.bindBuffer(ARRAY_BUFFER, gridPointsPosBuffer);
   // Set the vertex attribute to the size of each individual element (x,y,z)
