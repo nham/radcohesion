@@ -249,7 +249,7 @@ void tetraBufferSetup(RenderingContext gl) {
   List<double> u1 = [1.0, 0.0, 0.0]; // on bottom, from the leftmost going to rightmost
   List<double> u2 = [ -x,   y, 0.0]; // on bottom, from the rightmost going to topmost
   List<double> u3 = [ -x,  -y, 0.0]; // on bottom, from the topmost going to leftmost
-  List<double> u4 = scaleV([ -x,   y,   y], 2/sqrt(7)); // from bottom leftmost to the apex
+  List<double> u4 = [1.0/2, sqrt(3)/6, sqrt(2/3)]; // from bottom leftmost to the apex
   
   var va = [0.0, 0.0, 0.0];
   var vb = scaleV(u1, s);
