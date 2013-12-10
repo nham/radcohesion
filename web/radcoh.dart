@@ -383,7 +383,7 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   tetra_mvPushMatrix();
 
   tetra_mvMatrix.translate(tetra.pos);
-  tetra_mvMatrix.rotateY(radians(tetra.ang));
+  tetra_mvMatrix.rotateY(radians(tetra.ang)).rotateX(radians(tetra.ang));
   
   gl.bindBuffer(ARRAY_BUFFER, tetra.posBuf);
   // Set the vertex attribute to the size of each individual element (x,y,z)
