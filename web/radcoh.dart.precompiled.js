@@ -2276,6 +2276,23 @@ Symbol_getName: function(symbol) {
   return symbol.get$_name();
 },
 
+ListIterable: {"": "IterableBase;",
+  get$iterator: function(_) {
+    return new H.ListIterator(this, this.get$length(this), 0, null);
+  },
+  forEach$1: function(_, action) {
+    var $length, i;
+    $length = this.get$length(this);
+    for (i = 0; i < $length; ++i) {
+      action.call$1(this.elementAt$1(this, i));
+      if ($length !== this.get$length(this))
+        throw H.wrapException(P.ConcurrentModificationError$(this));
+    }
+  },
+  $asIterableBase: null,
+  $isEfficientLength: true
+},
+
 ListIterator: {"": "Object;_iterable,_length,_index,_current",
   get$current: function() {
     return this._current;
@@ -2349,6 +2366,22 @@ MappedIterator: {"": "Iterator;_current,_iterator,_f",
   $asIterator: function($S, $T) {
     return [$T];
   }
+},
+
+MappedListIterable: {"": "ListIterable;_source,_f",
+  _f$1: function(arg0) {
+    return this._f.call$1(arg0);
+  },
+  get$length: function(_) {
+    return J.get$length$asx(this._source);
+  },
+  elementAt$1: function(_, index) {
+    return this._f$1(J.elementAt$1$ax(this._source, index));
+  },
+  $asListIterable: function($S, $T) {
+    return [$T];
+  },
+  $isEfficientLength: true
 },
 
 FixedLengthListMixin: {"": "Object;"}}],
@@ -5553,7 +5586,7 @@ main: function() {
   p = E.programSetup(t1.gl_0);
   t1.gl_0.useProgram(p.program);
   E.gridBufferSetup(t1.gl_0);
-  E.tetraBufferSetup(t1.gl_0);
+  E.icosaBufferSetup(t1.gl_0);
   t1.lastTime_1 = 0;
   new E.main_tick(t1, canvas, p, new E.main_animate(t1)).call$1(0);
 },
@@ -5635,51 +5668,75 @@ gridBufferSetup: function(gl) {
   gl.bufferData(34962, t1, 35044);
 },
 
-tetraBufferSetup: function(gl) {
-  var t1, x, y, t2, t3, va, vb, vc, vd, a, pbuf, ibuf, cbuf, colors;
-  t1 = new E.tetraBufferSetup_scaleV();
-  x = Math.cos(1.0471975511965976);
-  y = Math.sin(1.0471975511965976);
-  Math.tan(1.0471975511965976);
-  t2 = Math.sqrt(3);
-  t3 = Math.sqrt(0.6666666666666666);
-  va = [0, 0, 0];
-  vb = t1.call$2([1, 0, 0], 3);
-  vc = t1.call$2([-x, -y, 0], -3);
-  vd = t1.call$2([0.5, t2 / 6, t3], 3);
+icosaBufferSetup: function(gl) {
+  var t1, a, t2, phi, v1, v2, v3, v4, v5, v6, pbuf, ibuf, cbuf, new_colors;
+  t1 = new E.icosaBufferSetup_scaleV();
   a = P.List_List(null, null);
-  t3 = new E.tetraBufferSetup_addVtoa(a);
-  t3.call$1(va);
-  t3.call$1(vb);
-  t3.call$1(vc);
-  t3.call$1(va);
-  t3.call$1(vb);
-  t3.call$1(vd);
-  t3.call$1(vb);
-  t3.call$1(vc);
-  t3.call$1(vd);
-  t3.call$1(vc);
-  t3.call$1(va);
-  t3.call$1(vd);
+  t2 = new E.icosaBufferSetup_addVtoa(a);
+  phi = (1 + Math.sqrt(5)) / 2;
+  v1 = [0, 1, phi];
+  v2 = [0, -1, phi];
+  v3 = [-phi, 0, 1];
+  v4 = [-1, phi, 0];
+  v5 = [1, phi, 0];
+  v6 = [phi, 0, 1];
+  t2.call$1(v1);
+  t2.call$1(v2);
+  t2.call$1(v3);
+  t2.call$1(v1);
+  t2.call$1(v3);
+  t2.call$1(v4);
+  t2.call$1(v1);
+  t2.call$1(v4);
+  t2.call$1(v5);
+  t2.call$1(v1);
+  t2.call$1(v5);
+  t2.call$1(v6);
+  t2.call$1(v1);
+  t2.call$1(v6);
+  t2.call$1(v2);
+  v1 = t1.call$2(v1, -1);
+  v2 = t1.call$2(v2, -1);
+  v3 = t1.call$2(v3, -1);
+  v4 = t1.call$2(v4, -1);
+  v5 = t1.call$2(v5, -1);
+  v6 = t1.call$2(v6, -1);
+  t2.call$1(v1);
+  t2.call$1(v2);
+  t2.call$1(v3);
+  t2.call$1(v1);
+  t2.call$1(v3);
+  t2.call$1(v4);
+  t2.call$1(v1);
+  t2.call$1(v4);
+  t2.call$1(v5);
+  t2.call$1(v1);
+  t2.call$1(v5);
+  t2.call$1(v6);
+  t2.call$1(v1);
+  t2.call$1(v6);
+  t2.call$1(v2);
   P.print(a);
   pbuf = gl.createBuffer();
   ibuf = gl.createBuffer();
   cbuf = gl.createBuffer();
-  $.tetra = new E.Figure(pbuf, ibuf, cbuf, [0, -3, -18], 0);
+  $.icosa = new E.Figure(pbuf, ibuf, cbuf, [0, -4, -18], 0);
   gl.bindBuffer(34962, pbuf);
-  t3 = new Float32Array(a);
-  t3.$dartCachedLength = t3.length;
-  gl.bufferData(34962, t3, 35044);
+  t1 = new Float32Array(a);
+  t1.$dartCachedLength = t1.length;
+  gl.bufferData(34962, t1, 35044);
   gl.bindBuffer(34963, ibuf);
-  t3 = new Uint16Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
-  t3.$dartCachedLength = t3.length;
-  gl.bufferData(34963, t3, 35044);
-  colors = [1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
-  P.print("lens: " + a.length + ", " + colors.length);
+  t1 = new Uint16Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]);
+  t1.$dartCachedLength = t1.length;
+  gl.bufferData(34963, t1, 35044);
+  t1 = new H.MappedListIterable([192, 62, 255, 255, 192, 62, 255, 255, 192, 62, 255, 255, 48, 186, 232, 255, 48, 186, 232, 255, 48, 186, 232, 255, 121, 255, 65, 255, 121, 255, 65, 255, 121, 255, 65, 255, 232, 171, 48, 255, 232, 171, 48, 255, 232, 171, 48, 255, 255, 71, 117, 255, 255, 71, 117, 255, 255, 71, 117, 255, 192, 62, 255, 165.75, 192, 62, 255, 165.75, 192, 62, 255, 165.75, 48, 186, 232, 165.75, 48, 186, 232, 165.75, 48, 186, 232, 165.75, 121, 255, 65, 165.75, 121, 255, 65, 165.75, 121, 255, 65, 165.75, 232, 171, 48, 165.75, 232, 171, 48, 165.75, 232, 171, 48, 165.75, 255, 71, 117, 165.75, 255, 71, 117, 165.75, 255, 71, 117, 165.75], new E.icosaBufferSetup_closure());
+  H.setRuntimeTypeInfo(t1, [null, null]);
+  new_colors = P.List_List$from(t1, true, null);
+  P.print(new_colors);
   gl.bindBuffer(34962, cbuf);
-  t3 = new Float32Array(colors);
-  t3.$dartCachedLength = t3.length;
-  gl.bufferData(34962, t3, 35044);
+  t1 = new Float32Array(new_colors);
+  t1.$dartCachedLength = t1.length;
+  gl.bufferData(34962, t1, 35044);
 },
 
 drawScene: function(gl, prog, aspect) {
@@ -5713,17 +5770,17 @@ drawScene: function(gl, prog, aspect) {
   t4.$dartCachedLength = t4.length;
   t3.push(new E.Matrix4(t4));
   t4 = $.tetra_mvMatrix;
-  t4.translate$1(t4, $.tetra.pos);
-  $.tetra_mvMatrix.rotateY$1($.tetra.ang * 0.017453292519943295).rotateX$1($.tetra.ang * 0.017453292519943295);
-  gl.bindBuffer(34962, $.tetra.posBuf);
+  t4.translate$1(t4, $.icosa.pos);
+  $.tetra_mvMatrix.rotateY$1($.icosa.ang * 0.017453292519943295).rotateX$1($.icosa.ang * 0.017453292519943295);
+  gl.bindBuffer(34962, $.icosa.posBuf);
   gl.vertexAttribPointer(t2.$index(t2, "aVertexPosition"), 3, 5126, false, 0, 0);
-  gl.bindBuffer(34963, $.tetra.indexBuf);
+  gl.bindBuffer(34963, $.icosa.indexBuf);
   gl.vertexAttribPointer(t2.$index(t2, "aVertexPosition"), 3, 5126, false, 0, 0);
-  gl.bindBuffer(34962, $.tetra.colorBuf);
+  gl.bindBuffer(34962, $.icosa.colorBuf);
   gl.vertexAttribPointer(t2.$index(t2, "aVertexColor"), 4, 5126, false, 0, 0);
   gl.uniformMatrix4fv(t1.$index(t1, "uPMatrix"), false, $.pMatrix.buf);
   gl.uniformMatrix4fv(t1.$index(t1, "uMVMatrix"), false, $.tetra_mvMatrix.buf);
-  gl.drawElements(4, 12, 5123, 0);
+  gl.drawElements(4, 30, 5123, 0);
   t1 = $.get$mvStack();
   if (0 >= t1.length)
     throw H.ioore(t1, 0);
@@ -6060,7 +6117,7 @@ main_animate: {"": "Closure;box_0",
       if (typeof elapsed !== "number")
         throw H.iae(elapsed);
       t2.ang = t3 + 60 * elapsed / 1000;
-      t3 = $.tetra;
+      t3 = $.icosa;
       t3.ang = t3.ang + 10 * elapsed / 1000;
     }
     t1.lastTime_1 = now;
@@ -6109,7 +6166,7 @@ genGridPointList_addV: {"": "Closure;",
   $is_args2: true
 },
 
-tetraBufferSetup_scaleV: {"": "Closure;",
+icosaBufferSetup_scaleV: {"": "Closure;",
   call$2: function(xs, c) {
     var t1, t2;
     t1 = J.getInterceptor$asx(xs);
@@ -6119,7 +6176,7 @@ tetraBufferSetup_scaleV: {"": "Closure;",
   $is_args2: true
 },
 
-tetraBufferSetup_addV: {"": "Closure;",
+icosaBufferSetup_addV: {"": "Closure;",
   call$2: function(u, v) {
     var t1, t2;
     t1 = J.getInterceptor$asx(u);
@@ -6129,7 +6186,7 @@ tetraBufferSetup_addV: {"": "Closure;",
   $is_args2: true
 },
 
-tetraBufferSetup_addVtoa: {"": "Closure;a_0",
+icosaBufferSetup_addVtoa: {"": "Closure;a_0",
   call$1: function(v) {
     var t1, t2;
     t1 = this.a_0;
@@ -6138,6 +6195,15 @@ tetraBufferSetup_addVtoa: {"": "Closure;a_0",
     t1.push(t2.$index(v, 1));
     t1.push(t2.$index(v, 2));
     return t1;
+  },
+  $is_args1: true
+},
+
+icosaBufferSetup_closure: {"": "Closure;",
+  call$1: function(x) {
+    if (typeof x !== "number")
+      throw x.$div();
+    return x / 255;
   },
   $is_args1: true
 },
@@ -6427,7 +6493,7 @@ $.Expando__keyCount = 0;
 $.Device__isOpera = null;
 $.Device__isWebKit = null;
 $.triGrid = null;
-$.tetra = null;
+$.icosa = null;
 $.pMatrix = null;
 $.grid_mvMatrix = null;
 $.tetra_mvMatrix = null;
@@ -6466,6 +6532,9 @@ J.$sub$n = function(receiver, a0) {
 };
 J.clearColor$4$x = function(receiver, a0, a1, a2, a3) {
   return J.getInterceptor$x(receiver).clearColor$4(receiver, a0, a1, a2, a3);
+};
+J.elementAt$1$ax = function(receiver, a0) {
+  return J.getInterceptor$ax(receiver).elementAt$1(receiver, a0);
 };
 J.forEach$1$ax = function(receiver, a0) {
   return J.getInterceptor$ax(receiver).forEach$1(receiver, a0);
@@ -10048,6 +10117,15 @@ function dart_precompiled($collectedClasses) {
   if ($desc instanceof Array)
     $desc = $desc[1];
   initHooks_closure1.prototype = $desc;
+  function ListIterable() {
+  }
+  ListIterable.builtin$cls = "ListIterable";
+  if (!"name" in ListIterable)
+    ListIterable.name = "ListIterable";
+  $desc = $collectedClasses.ListIterable;
+  if ($desc instanceof Array)
+    $desc = $desc[1];
+  ListIterable.prototype = $desc;
   function ListIterator(_iterable, _length, _index, _current) {
     this._iterable = _iterable;
     this._length = _length;
@@ -10095,6 +10173,17 @@ function dart_precompiled($collectedClasses) {
   if ($desc instanceof Array)
     $desc = $desc[1];
   MappedIterator.prototype = $desc;
+  function MappedListIterable(_source, _f) {
+    this._source = _source;
+    this._f = _f;
+  }
+  MappedListIterable.builtin$cls = "MappedListIterable";
+  if (!"name" in MappedListIterable)
+    MappedListIterable.name = "MappedListIterable";
+  $desc = $collectedClasses.MappedListIterable;
+  if ($desc instanceof Array)
+    $desc = $desc[1];
+  MappedListIterable.prototype = $desc;
   function FixedLengthListMixin() {
   }
   FixedLengthListMixin.builtin$cls = "FixedLengthListMixin";
@@ -11396,34 +11485,43 @@ function dart_precompiled($collectedClasses) {
   if ($desc instanceof Array)
     $desc = $desc[1];
   genGridPointList_addV.prototype = $desc;
-  function tetraBufferSetup_scaleV() {
+  function icosaBufferSetup_scaleV() {
   }
-  tetraBufferSetup_scaleV.builtin$cls = "tetraBufferSetup_scaleV";
-  if (!"name" in tetraBufferSetup_scaleV)
-    tetraBufferSetup_scaleV.name = "tetraBufferSetup_scaleV";
-  $desc = $collectedClasses.tetraBufferSetup_scaleV;
+  icosaBufferSetup_scaleV.builtin$cls = "icosaBufferSetup_scaleV";
+  if (!"name" in icosaBufferSetup_scaleV)
+    icosaBufferSetup_scaleV.name = "icosaBufferSetup_scaleV";
+  $desc = $collectedClasses.icosaBufferSetup_scaleV;
   if ($desc instanceof Array)
     $desc = $desc[1];
-  tetraBufferSetup_scaleV.prototype = $desc;
-  function tetraBufferSetup_addV() {
+  icosaBufferSetup_scaleV.prototype = $desc;
+  function icosaBufferSetup_addV() {
   }
-  tetraBufferSetup_addV.builtin$cls = "tetraBufferSetup_addV";
-  if (!"name" in tetraBufferSetup_addV)
-    tetraBufferSetup_addV.name = "tetraBufferSetup_addV";
-  $desc = $collectedClasses.tetraBufferSetup_addV;
+  icosaBufferSetup_addV.builtin$cls = "icosaBufferSetup_addV";
+  if (!"name" in icosaBufferSetup_addV)
+    icosaBufferSetup_addV.name = "icosaBufferSetup_addV";
+  $desc = $collectedClasses.icosaBufferSetup_addV;
   if ($desc instanceof Array)
     $desc = $desc[1];
-  tetraBufferSetup_addV.prototype = $desc;
-  function tetraBufferSetup_addVtoa(a_0) {
+  icosaBufferSetup_addV.prototype = $desc;
+  function icosaBufferSetup_addVtoa(a_0) {
     this.a_0 = a_0;
   }
-  tetraBufferSetup_addVtoa.builtin$cls = "tetraBufferSetup_addVtoa";
-  if (!"name" in tetraBufferSetup_addVtoa)
-    tetraBufferSetup_addVtoa.name = "tetraBufferSetup_addVtoa";
-  $desc = $collectedClasses.tetraBufferSetup_addVtoa;
+  icosaBufferSetup_addVtoa.builtin$cls = "icosaBufferSetup_addVtoa";
+  if (!"name" in icosaBufferSetup_addVtoa)
+    icosaBufferSetup_addVtoa.name = "icosaBufferSetup_addVtoa";
+  $desc = $collectedClasses.icosaBufferSetup_addVtoa;
   if ($desc instanceof Array)
     $desc = $desc[1];
-  tetraBufferSetup_addVtoa.prototype = $desc;
+  icosaBufferSetup_addVtoa.prototype = $desc;
+  function icosaBufferSetup_closure() {
+  }
+  icosaBufferSetup_closure.builtin$cls = "icosaBufferSetup_closure";
+  if (!"name" in icosaBufferSetup_closure)
+    icosaBufferSetup_closure.name = "icosaBufferSetup_closure";
+  $desc = $collectedClasses.icosaBufferSetup_closure;
+  if ($desc instanceof Array)
+    $desc = $desc[1];
+  icosaBufferSetup_closure.prototype = $desc;
   function Figure(posBuf, indexBuf, colorBuf, pos, ang) {
     this.posBuf = posBuf;
     this.indexBuf = indexBuf;
@@ -11483,5 +11581,5 @@ function dart_precompiled($collectedClasses) {
   if ($desc instanceof Array)
     $desc = $desc[1];
   Closure$20.prototype = $desc;
-  return [HtmlElement, AnchorElement, AnimationEvent, AreaElement, AudioElement, AutocompleteErrorEvent, BRElement, BaseElement, BeforeLoadEvent, BeforeUnloadEvent, BodyElement, ButtonElement, CDataSection, CanvasElement, CanvasRenderingContext, CanvasRenderingContext2D, CharacterData, CloseEvent, Comment, CompositionEvent, ContentElement, CssFontFaceLoadEvent, CustomEvent, DListElement, DataListElement, DetailsElement, DeviceMotionEvent, DeviceOrientationEvent, DialogElement, DivElement, Document, DocumentFragment, DocumentType, DomError, DomException, Element, EmbedElement, ErrorEvent, Event, EventTarget, FieldSetElement, FileError, FocusEvent, FormElement, HRElement, HashChangeEvent, HeadElement, HeadingElement, HtmlDocument, HtmlHtmlElement, IFrameElement, ImageElement, InputElement, KeyboardEvent, KeygenElement, LIElement, LabelElement, LegendElement, LinkElement, MapElement, MediaElement, MediaError, MediaKeyError, MediaKeyEvent, MediaKeyMessageEvent, MediaKeyNeededEvent, MediaStream, MediaStreamEvent, MediaStreamTrackEvent, MenuElement, MessageEvent, MetaElement, MeterElement, MidiConnectionEvent, MidiMessageEvent, ModElement, MouseEvent, Navigator, NavigatorUserMediaError, Node, OListElement, ObjectElement, OptGroupElement, OptionElement, OutputElement, OverflowEvent, PageTransitionEvent, ParagraphElement, ParamElement, PopStateEvent, PositionError, PreElement, ProcessingInstruction, ProgressElement, ProgressEvent, QuoteElement, ResourceProgressEvent, RtcDataChannelEvent, RtcDtmfToneChangeEvent, RtcIceCandidateEvent, ScriptElement, SecurityPolicyViolationEvent, SelectElement, ShadowElement, ShadowRoot, SourceElement, SpanElement, SpeechInputEvent, SpeechRecognitionError, SpeechRecognitionEvent, SpeechSynthesisEvent, StorageEvent, StyleElement, TableCaptionElement, TableCellElement, TableColElement, TableElement, TableRowElement, TableSectionElement, TemplateElement, Text, TextAreaElement, TextEvent, TitleElement, TouchEvent, TrackElement, TrackEvent, TransitionEvent, UIEvent, UListElement, UnknownElement, VideoElement, WheelEvent, Window, _Attr, _Entity, _HTMLAppletElement, _HTMLBaseFontElement, _HTMLDirectoryElement, _HTMLFontElement, _HTMLFrameElement, _HTMLFrameSetElement, _HTMLMarqueeElement, _MutationEvent, _NamedNodeMap, _Notation, _XMLHttpRequestProgressEvent, VersionChangeEvent, AElement, AltGlyphElement, AnimateElement, AnimateMotionElement, AnimateTransformElement, AnimatedLength, AnimatedNumberList, AnimationElement, CircleElement, ClipPathElement, DefsElement, DescElement, EllipseElement, FEBlendElement, FEColorMatrixElement, FEComponentTransferElement, FECompositeElement, FEConvolveMatrixElement, FEDiffuseLightingElement, FEDisplacementMapElement, FEDistantLightElement, FEFloodElement, FEFuncAElement, FEFuncBElement, FEFuncGElement, FEFuncRElement, FEGaussianBlurElement, FEImageElement, FEMergeElement, FEMergeNodeElement, FEMorphologyElement, FEOffsetElement, FEPointLightElement, FESpecularLightingElement, FESpotLightElement, FETileElement, FETurbulenceElement, FilterElement, ForeignObjectElement, GElement, GraphicsElement, ImageElement0, LineElement, LinearGradientElement, MarkerElement, MaskElement, MetadataElement, PathElement, PatternElement, PolygonElement, PolylineElement, RadialGradientElement, Rect, RectElement, ScriptElement0, SetElement, StopElement, StyleElement0, SvgDocument, SvgElement, SvgSvgElement, SwitchElement, SymbolElement, TSpanElement, TextContentElement, TextElement, TextPathElement, TextPositioningElement, TitleElement0, UseElement, ViewElement, ZoomEvent, _GradientElement, _SVGAltGlyphDefElement, _SVGAltGlyphItemElement, _SVGAnimateColorElement, _SVGComponentTransferFunctionElement, _SVGCursorElement, _SVGFEDropShadowElement, _SVGFontElement, _SVGFontFaceElement, _SVGFontFaceFormatElement, _SVGFontFaceNameElement, _SVGFontFaceSrcElement, _SVGFontFaceUriElement, _SVGGlyphElement, _SVGGlyphRefElement, _SVGHKernElement, _SVGMPathElement, _SVGMissingGlyphElement, _SVGVKernElement, AudioProcessingEvent, OfflineAudioCompletionEvent, Buffer, ContextEvent, Program, RenderingContext, Shader, UniformLocation, SqlError, TypedData, Float32List, Uint16List, Uint8List, JS_CONST, Interceptor, JSBool, JSNull, JavaScriptObject, PlainJavaScriptObject, UnknownJavaScriptObject, JSArray, JSMutableArray, JSFixedArray, JSExtendableArray, JSNumber, JSInt, JSDouble, JSString, startRootIsolate_closure, startRootIsolate_closure0, _Manager, _IsolateContext, _EventLoop, _EventLoop__runHelper_next, _IsolateEvent, _MainManagerStub, IsolateNatives__processWorkerMessage_closure, _BaseSendPort, _NativeJsSendPort, _NativeJsSendPort_send_closure, _NativeJsSendPort_send__closure, _WorkerSendPort, _WorkerSendPort_send_closure, ReceivePortImpl, BoundClosure$i0, _waitForPendingPorts_closure, _PendingSendPortFinder, _JsSerializer, _JsCopier, _JsDeserializer, _JsVisitedMap, _MessageTraverserVisitedMap, _MessageTraverser, BoundClosure$1, _Copier, _Copier_visitMap_closure, _Serializer, _Deserializer, TimerImpl, TimerImpl_internalCallback, TimerImpl_internalCallback0, TypeErrorDecoder, NullError, JsNoSuchMethodError, UnknownJsTypeError, unwrapException_saveStackTrace, _StackTrace, invokeClosure_closure, invokeClosure_closure0, invokeClosure_closure1, invokeClosure_closure2, invokeClosure_closure3, Closure, BoundClosure, initHooks_closure, initHooks_closure0, initHooks_closure1, ListIterator, MappedIterable, EfficientLengthMappedIterable, MappedIterator, FixedLengthListMixin, _AsyncError, Future, Future_wait_handleError, Future_wait_closure, _Completer, _AsyncCompleter, _Future, BoundClosure$2, _Future__addListener_closure, _Future__chainFutures_closure, _Future__chainFutures_closure0, _Future__asyncComplete_closure, _Future__asyncCompleteError_closure, _Future__propagateToListeners_closure, _Future__propagateToListeners_closure0, _Future__propagateToListeners__closure, _Future__propagateToListeners__closure0, Stream, Stream_forEach_closure, Stream_forEach__closure, Stream_forEach__closure0, Stream_forEach_closure0, Stream_length_closure, Stream_length_closure0, StreamSubscription, _StreamController, _StreamController__subscribe_closure, _StreamController__recordCancel_complete, _SyncStreamControllerDispatch, _AsyncStreamControllerDispatch, _AsyncStreamController, _StreamController__AsyncStreamControllerDispatch, _SyncStreamController, _StreamController__SyncStreamControllerDispatch, _ControllerStream, _ControllerSubscription, BoundClosure$0, _EventSink, _BufferingStreamSubscription, _BufferingStreamSubscription__sendDone_sendDone, _StreamImpl, _DelayedEvent, _DelayedData, _DelayedDone, _PendingEvents, _PendingEvents_schedule_closure, _StreamImplEvents, _cancelAndError_closure, _cancelAndErrorClosure_closure, _BaseZone, _BaseZone_bindCallback_closure, _BaseZone_bindCallback_closure0, _BaseZone_bindUnaryCallback_closure, _BaseZone_bindUnaryCallback_closure0, _rootHandleUncaughtError_closure, _rootHandleUncaughtError__closure, _RootZone, _HashMap, _HashMap_values_closure, HashMapKeyIterable, HashMapKeyIterator, _LinkedHashMap, _LinkedHashMap_values_closure, LinkedHashMapCell, LinkedHashMapKeyIterable, LinkedHashMapKeyIterator, _HashSet, _IdentityHashSet, HashSetIterator, _HashSetBase, IterableBase, ListMixin, Maps_mapToString_closure, ListQueue, _ListQueueIterator, NoSuchMethodError_toString_closure, Duration, Duration_toString_sixDigits, Duration_toString_twoDigits, Error, NullThrownError, ArgumentError, RangeError, UnsupportedError, UnimplementedError, StateError, ConcurrentModificationError, StackOverflowError, CyclicInitializationError, _ExceptionImplementation, Expando, Function, Iterator, Null, Object, StackTrace, StringBuffer, Symbol, Interceptor_ListMixin, Interceptor_ListMixin_ImmutableListMixin, ImmutableListMixin, FixedSizeListIterator, ReceivePort, TypedData_ListMixin, TypedData_ListMixin_FixedLengthListMixin, TypedData_ListMixin0, TypedData_ListMixin_FixedLengthListMixin0, TypedData_ListMixin1, TypedData_ListMixin_FixedLengthListMixin1, convertDartToNative_Dictionary_closure, GlProgram, Matrix4, main_animate, main_tick, genGridPointList_scaleV, genGridPointList_addV, tetraBufferSetup_scaleV, tetraBufferSetup_addV, tetraBufferSetup_addVtoa, Figure, Closure$2, Closure$0, Closure$7, Closure$1, Closure$20];
+  return [HtmlElement, AnchorElement, AnimationEvent, AreaElement, AudioElement, AutocompleteErrorEvent, BRElement, BaseElement, BeforeLoadEvent, BeforeUnloadEvent, BodyElement, ButtonElement, CDataSection, CanvasElement, CanvasRenderingContext, CanvasRenderingContext2D, CharacterData, CloseEvent, Comment, CompositionEvent, ContentElement, CssFontFaceLoadEvent, CustomEvent, DListElement, DataListElement, DetailsElement, DeviceMotionEvent, DeviceOrientationEvent, DialogElement, DivElement, Document, DocumentFragment, DocumentType, DomError, DomException, Element, EmbedElement, ErrorEvent, Event, EventTarget, FieldSetElement, FileError, FocusEvent, FormElement, HRElement, HashChangeEvent, HeadElement, HeadingElement, HtmlDocument, HtmlHtmlElement, IFrameElement, ImageElement, InputElement, KeyboardEvent, KeygenElement, LIElement, LabelElement, LegendElement, LinkElement, MapElement, MediaElement, MediaError, MediaKeyError, MediaKeyEvent, MediaKeyMessageEvent, MediaKeyNeededEvent, MediaStream, MediaStreamEvent, MediaStreamTrackEvent, MenuElement, MessageEvent, MetaElement, MeterElement, MidiConnectionEvent, MidiMessageEvent, ModElement, MouseEvent, Navigator, NavigatorUserMediaError, Node, OListElement, ObjectElement, OptGroupElement, OptionElement, OutputElement, OverflowEvent, PageTransitionEvent, ParagraphElement, ParamElement, PopStateEvent, PositionError, PreElement, ProcessingInstruction, ProgressElement, ProgressEvent, QuoteElement, ResourceProgressEvent, RtcDataChannelEvent, RtcDtmfToneChangeEvent, RtcIceCandidateEvent, ScriptElement, SecurityPolicyViolationEvent, SelectElement, ShadowElement, ShadowRoot, SourceElement, SpanElement, SpeechInputEvent, SpeechRecognitionError, SpeechRecognitionEvent, SpeechSynthesisEvent, StorageEvent, StyleElement, TableCaptionElement, TableCellElement, TableColElement, TableElement, TableRowElement, TableSectionElement, TemplateElement, Text, TextAreaElement, TextEvent, TitleElement, TouchEvent, TrackElement, TrackEvent, TransitionEvent, UIEvent, UListElement, UnknownElement, VideoElement, WheelEvent, Window, _Attr, _Entity, _HTMLAppletElement, _HTMLBaseFontElement, _HTMLDirectoryElement, _HTMLFontElement, _HTMLFrameElement, _HTMLFrameSetElement, _HTMLMarqueeElement, _MutationEvent, _NamedNodeMap, _Notation, _XMLHttpRequestProgressEvent, VersionChangeEvent, AElement, AltGlyphElement, AnimateElement, AnimateMotionElement, AnimateTransformElement, AnimatedLength, AnimatedNumberList, AnimationElement, CircleElement, ClipPathElement, DefsElement, DescElement, EllipseElement, FEBlendElement, FEColorMatrixElement, FEComponentTransferElement, FECompositeElement, FEConvolveMatrixElement, FEDiffuseLightingElement, FEDisplacementMapElement, FEDistantLightElement, FEFloodElement, FEFuncAElement, FEFuncBElement, FEFuncGElement, FEFuncRElement, FEGaussianBlurElement, FEImageElement, FEMergeElement, FEMergeNodeElement, FEMorphologyElement, FEOffsetElement, FEPointLightElement, FESpecularLightingElement, FESpotLightElement, FETileElement, FETurbulenceElement, FilterElement, ForeignObjectElement, GElement, GraphicsElement, ImageElement0, LineElement, LinearGradientElement, MarkerElement, MaskElement, MetadataElement, PathElement, PatternElement, PolygonElement, PolylineElement, RadialGradientElement, Rect, RectElement, ScriptElement0, SetElement, StopElement, StyleElement0, SvgDocument, SvgElement, SvgSvgElement, SwitchElement, SymbolElement, TSpanElement, TextContentElement, TextElement, TextPathElement, TextPositioningElement, TitleElement0, UseElement, ViewElement, ZoomEvent, _GradientElement, _SVGAltGlyphDefElement, _SVGAltGlyphItemElement, _SVGAnimateColorElement, _SVGComponentTransferFunctionElement, _SVGCursorElement, _SVGFEDropShadowElement, _SVGFontElement, _SVGFontFaceElement, _SVGFontFaceFormatElement, _SVGFontFaceNameElement, _SVGFontFaceSrcElement, _SVGFontFaceUriElement, _SVGGlyphElement, _SVGGlyphRefElement, _SVGHKernElement, _SVGMPathElement, _SVGMissingGlyphElement, _SVGVKernElement, AudioProcessingEvent, OfflineAudioCompletionEvent, Buffer, ContextEvent, Program, RenderingContext, Shader, UniformLocation, SqlError, TypedData, Float32List, Uint16List, Uint8List, JS_CONST, Interceptor, JSBool, JSNull, JavaScriptObject, PlainJavaScriptObject, UnknownJavaScriptObject, JSArray, JSMutableArray, JSFixedArray, JSExtendableArray, JSNumber, JSInt, JSDouble, JSString, startRootIsolate_closure, startRootIsolate_closure0, _Manager, _IsolateContext, _EventLoop, _EventLoop__runHelper_next, _IsolateEvent, _MainManagerStub, IsolateNatives__processWorkerMessage_closure, _BaseSendPort, _NativeJsSendPort, _NativeJsSendPort_send_closure, _NativeJsSendPort_send__closure, _WorkerSendPort, _WorkerSendPort_send_closure, ReceivePortImpl, BoundClosure$i0, _waitForPendingPorts_closure, _PendingSendPortFinder, _JsSerializer, _JsCopier, _JsDeserializer, _JsVisitedMap, _MessageTraverserVisitedMap, _MessageTraverser, BoundClosure$1, _Copier, _Copier_visitMap_closure, _Serializer, _Deserializer, TimerImpl, TimerImpl_internalCallback, TimerImpl_internalCallback0, TypeErrorDecoder, NullError, JsNoSuchMethodError, UnknownJsTypeError, unwrapException_saveStackTrace, _StackTrace, invokeClosure_closure, invokeClosure_closure0, invokeClosure_closure1, invokeClosure_closure2, invokeClosure_closure3, Closure, BoundClosure, initHooks_closure, initHooks_closure0, initHooks_closure1, ListIterable, ListIterator, MappedIterable, EfficientLengthMappedIterable, MappedIterator, MappedListIterable, FixedLengthListMixin, _AsyncError, Future, Future_wait_handleError, Future_wait_closure, _Completer, _AsyncCompleter, _Future, BoundClosure$2, _Future__addListener_closure, _Future__chainFutures_closure, _Future__chainFutures_closure0, _Future__asyncComplete_closure, _Future__asyncCompleteError_closure, _Future__propagateToListeners_closure, _Future__propagateToListeners_closure0, _Future__propagateToListeners__closure, _Future__propagateToListeners__closure0, Stream, Stream_forEach_closure, Stream_forEach__closure, Stream_forEach__closure0, Stream_forEach_closure0, Stream_length_closure, Stream_length_closure0, StreamSubscription, _StreamController, _StreamController__subscribe_closure, _StreamController__recordCancel_complete, _SyncStreamControllerDispatch, _AsyncStreamControllerDispatch, _AsyncStreamController, _StreamController__AsyncStreamControllerDispatch, _SyncStreamController, _StreamController__SyncStreamControllerDispatch, _ControllerStream, _ControllerSubscription, BoundClosure$0, _EventSink, _BufferingStreamSubscription, _BufferingStreamSubscription__sendDone_sendDone, _StreamImpl, _DelayedEvent, _DelayedData, _DelayedDone, _PendingEvents, _PendingEvents_schedule_closure, _StreamImplEvents, _cancelAndError_closure, _cancelAndErrorClosure_closure, _BaseZone, _BaseZone_bindCallback_closure, _BaseZone_bindCallback_closure0, _BaseZone_bindUnaryCallback_closure, _BaseZone_bindUnaryCallback_closure0, _rootHandleUncaughtError_closure, _rootHandleUncaughtError__closure, _RootZone, _HashMap, _HashMap_values_closure, HashMapKeyIterable, HashMapKeyIterator, _LinkedHashMap, _LinkedHashMap_values_closure, LinkedHashMapCell, LinkedHashMapKeyIterable, LinkedHashMapKeyIterator, _HashSet, _IdentityHashSet, HashSetIterator, _HashSetBase, IterableBase, ListMixin, Maps_mapToString_closure, ListQueue, _ListQueueIterator, NoSuchMethodError_toString_closure, Duration, Duration_toString_sixDigits, Duration_toString_twoDigits, Error, NullThrownError, ArgumentError, RangeError, UnsupportedError, UnimplementedError, StateError, ConcurrentModificationError, StackOverflowError, CyclicInitializationError, _ExceptionImplementation, Expando, Function, Iterator, Null, Object, StackTrace, StringBuffer, Symbol, Interceptor_ListMixin, Interceptor_ListMixin_ImmutableListMixin, ImmutableListMixin, FixedSizeListIterator, ReceivePort, TypedData_ListMixin, TypedData_ListMixin_FixedLengthListMixin, TypedData_ListMixin0, TypedData_ListMixin_FixedLengthListMixin0, TypedData_ListMixin1, TypedData_ListMixin_FixedLengthListMixin1, convertDartToNative_Dictionary_closure, GlProgram, Matrix4, main_animate, main_tick, genGridPointList_scaleV, genGridPointList_addV, icosaBufferSetup_scaleV, icosaBufferSetup_addV, icosaBufferSetup_addVtoa, icosaBufferSetup_closure, Figure, Closure$2, Closure$0, Closure$7, Closure$1, Closure$20];
 }
