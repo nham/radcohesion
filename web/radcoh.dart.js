@@ -5646,10 +5646,12 @@ genGridPointList: function() {
 },
 
 gridBufferSetup: function(gl) {
-  var pbuf, ibuf, cbuf, a, t1, colors;
+  var pbuf, ibuf, cbuf, a, t1, colors, i;
   pbuf = gl.createBuffer();
   ibuf = gl.createBuffer();
   cbuf = gl.createBuffer();
+  $.triGridTriIndBuf = gl.createBuffer();
+  $.triGridTriColorBuf = gl.createBuffer();
   $.triGrid = new E.Figure(pbuf, ibuf, cbuf, [0, 1.8, -9], 0);
   a = E.genGridPointList();
   gl.bindBuffer(34962, pbuf);
@@ -5666,6 +5668,23 @@ gridBufferSetup: function(gl) {
   t1 = new Float32Array(colors);
   t1.$dartCachedLength = t1.length;
   gl.bufferData(34962, t1, 35044);
+  colors = [];
+  for (i = 0; i < 12; ++i) {
+    colors.push(0.9);
+    colors.push(0.5);
+    colors.push(0.9);
+    colors.push(0.8);
+  }
+  P.print(colors);
+  P.print("made if after yaaaa");
+  gl.bindBuffer(34962, $.triGridTriColorBuf);
+  t1 = new Float32Array(colors);
+  t1.$dartCachedLength = t1.length;
+  gl.bufferData(34962, t1, 35044);
+  gl.bindBuffer(34963, $.triGridTriIndBuf);
+  t1 = new Uint16Array([0, 4, 8]);
+  t1.$dartCachedLength = t1.length;
+  gl.bufferData(34963, t1, 35044);
 },
 
 icosaBufferSetup: function(gl) {
@@ -6524,6 +6543,8 @@ $.Device__isOpera = null;
 $.Device__isWebKit = null;
 $.triGrid = null;
 $.icosa = null;
+$.triGridTriIndBuf = null;
+$.triGridTriColorBuf = null;
 $.pMatrix = null;
 $.grid_mvMatrix = null;
 $.tetra_mvMatrix = null;
