@@ -12,7 +12,7 @@ part 'matrix4.dart';
 part 'gl_program.dart';
 
 
-Figure triGrid, tetra;
+Figure triGrid, icosa;
 
 void main() {
   grid_mvMatrix = new Matrix4()..identity();
@@ -31,7 +31,7 @@ void main() {
   gl.useProgram(p.program);
   
   gridBufferSetup(gl);
-  tetraBufferSetup(gl);
+  icosaBufferSetup(gl);
   
   // a closure to keep the last time!
   num lastTime = 0;
@@ -39,7 +39,7 @@ void main() {
     if (lastTime != 0) {
       var elapsed = now - lastTime;
       triGrid.ang += (60 * elapsed) / 1000.0;
-      tetra.ang += (10 * elapsed) / 1000.0;
+      icosa.ang += (10 * elapsed) / 1000.0;
     }
     
     lastTime = now;
@@ -232,48 +232,76 @@ void gridBufferSetup(RenderingContext gl) {
 }
 
 
-void tetraBufferSetup(RenderingContext gl) {
+void icosaBufferSetup(RenderingContext gl) {
   //TODO refactor so we dont repeat all this? meh, this separate buffer is temporary
   scaleV (xs, c) => [c * xs[0], c * xs[1], c * xs[2]];
   
   addV (u, v) => [u[0] + v[0], u[1] + v[1], u[2] + v[2]];
   
-  double x = cos(PI/3);
-  double y = sin(PI/3);
-  double sl = tan(PI/3);
-  
-  double s = 3.0;
-  double hs = s / 2;
-  double sc = s / 4; // used scale u1 through u3 when generating the coords
-  
-  List<double> u1 = [1.0, 0.0, 0.0]; // on bottom, from the leftmost going to rightmost
-  List<double> u2 = [ -x,   y, 0.0]; // on bottom, from the rightmost going to topmost
-  List<double> u3 = [ -x,  -y, 0.0]; // on bottom, from the topmost going to leftmost
-  List<double> u4 = [1.0/2, sqrt(3)/6, sqrt(2/3)]; // from bottom leftmost to the apex
-  
-  var va = [0.0, 0.0, 0.0];
-  var vb = scaleV(u1, s);
-  var vc = scaleV(u3, -s);
-  var vd = scaleV(u4, s);
-  
   List<double> a = new List();
   addVtoa (v) => a..add(v[0])..add(v[1])..add(v[2]);
   
-  addVtoa(va);
-  addVtoa(vb);
-  addVtoa(vc);
+  double phi = (1 + sqrt(5))/2;
+  List<double> v = [0.0, 1.0, phi];
   
-  addVtoa(va);
-  addVtoa(vb);
-  addVtoa(vd);
+  double s = 3.0;
   
-  addVtoa(vb);
-  addVtoa(vc);
-  addVtoa(vd);
+  List<double> v1 = [ 0.0,  1.0, phi];
+  List<double> v2 = [ 0.0, -1.0, phi];
+  List<double> v3 = [-phi,  0.0, 1.0];
+  List<double> v4 = [-1.0,  phi, 0.0];
+  List<double> v5 = [ 1.0,  phi, 0.0];
+  List<double> v6 = [ phi,  0.0, 1.0];
+ 
+
+  addVtoa(v1);
+  addVtoa(v2);
+  addVtoa(v3);
   
-  addVtoa(vc);
-  addVtoa(va);
-  addVtoa(vd);
+  addVtoa(v1);
+  addVtoa(v3);
+  addVtoa(v4);
+  
+  addVtoa(v1);
+  addVtoa(v4);
+  addVtoa(v5);
+  
+  addVtoa(v1);
+  addVtoa(v5);
+  addVtoa(v6);
+  
+  addVtoa(v1);
+  addVtoa(v6);
+  addVtoa(v2);
+  
+  // invert!
+  v1 = scaleV(v1, -1.0);
+  v2 = scaleV(v2, -1.0);
+  v3 = scaleV(v3, -1.0);
+  v4 = scaleV(v4, -1.0);
+  v5 = scaleV(v5, -1.0);
+  v6 = scaleV(v6, -1.0);
+  
+  addVtoa(v1);
+  addVtoa(v2);
+  addVtoa(v3);
+  
+  addVtoa(v1);
+  addVtoa(v3);
+  addVtoa(v4);
+  
+  addVtoa(v1);
+  addVtoa(v4);
+  addVtoa(v5);
+  
+  addVtoa(v1);
+  addVtoa(v5);
+  addVtoa(v6);
+  
+  addVtoa(v1);
+  addVtoa(v6);
+  addVtoa(v2);
+  
   
   print(a);
   
@@ -283,7 +311,7 @@ void tetraBufferSetup(RenderingContext gl) {
   pbuf = gl.createBuffer();
   ibuf = gl.createBuffer();
   cbuf = gl.createBuffer();
-  tetra = new Figure(pbuf, ibuf, cbuf, [0.0, -3.0, -18.0], 0.0);
+  icosa = new Figure(pbuf, ibuf, cbuf, [0.0, -4.0, -18.0], 0.0);
 
   
   gl.bindBuffer(ARRAY_BUFFER, pbuf);
@@ -291,7 +319,10 @@ void tetraBufferSetup(RenderingContext gl) {
   
   
   var gridPointsIndices = [ 0,  1,  2,   3,  4,  5,
-                            6,  7,  8,   9, 10, 11
+                            6,  7,  8,   9, 10, 11,
+                           12, 13, 14,  15, 16, 17,
+                           18, 19, 20,  21, 22, 23,
+                           24, 25, 26,  27, 28, 29
                           ];
   
   gl.bindBuffer(ELEMENT_ARRAY_BUFFER, ibuf);
@@ -300,23 +331,44 @@ void tetraBufferSetup(RenderingContext gl) {
   
   
   var colors = [
-                1.0,  0.0,  0.0,  1.0,    // red
-                1.0,  0.0,  0.0,  1.0,    // red
-                1.0,  0.0,  0.0,  1.0,    // red
-                0.0,  1.0,  0.0,  1.0,    // green
-                0.0,  1.0,  0.0,  1.0,    // green
-                0.0,  1.0,  0.0,  1.0,    // green
-                0.0,  0.0,  1.0,  1.0,    // blue
-                0.0,  0.0,  1.0,  1.0,    // blue
-                0.0,  0.0,  1.0,  1.0,    // blue
-                1.0,  1.0,  1.0,  1.0,    // notblack
-                1.0,  1.0,  1.0,  1.0,    // notblack
-                1.0,  1.0,  1.0,  1.0     // notblack
+                192.0,  62.0,  255.0,  255.0, //purp
+                192.0,  62.0,  255.0,  255.0,
+                192.0,  62.0,  255.0,  255.0,
+                48.0,  186.0,  232.0,  255.0, // blue
+                48.0,  186.0,  232.0,  255.0,
+                48.0,  186.0,  232.0,  255.0,
+                121.0,  255.0,  65.0,  255.0, // green
+                121.0,  255.0,  65.0,  255.0,
+                121.0,  255.0,  65.0,  255.0,
+                232.0,  171.0,  48.0,  255.0, // orangeutan
+                232.0,  171.0,  48.0,  255.0, 
+                232.0,  171.0,  48.0,  255.0, 
+                255.0,  71.0,  117.0,  255.0, // SALMON
+                255.0,  71.0,  117.0,  255.0, 
+                255.0,  71.0,  117.0,  255.0, 
+                
+                192.0,  62.0,  255.0,  255 * 0.65, //purp
+                192.0,  62.0,  255.0,  255 * 0.65,
+                192.0,  62.0,  255.0,  255 * 0.65,
+                48.0,  186.0,  232.0,  255 * 0.65, // blue
+                48.0,  186.0,  232.0,  255 * 0.65,
+                48.0,  186.0,  232.0,  255 * 0.65,
+                121.0,  255.0,  65.0,  255 * 0.65, // green
+                121.0,  255.0,  65.0,  255 * 0.65,
+                121.0,  255.0,  65.0,  255 * 0.65,
+                232.0,  171.0,  48.0,  255 * 0.65, // orangeutan
+                232.0,  171.0,  48.0,  255 * 0.65, 
+                232.0,  171.0,  48.0,  255 * 0.65, 
+                255.0,  71.0,  117.0,  255 * 0.65, // SALMON
+                255.0,  71.0,  117.0,  255 * 0.65, 
+                255.0,  71.0,  117.0,  255 * 0.65
                 ];
   
-  print("lens: ${a.length}, ${colors.length}");
+  var new_colors = new List.from(colors.map((x) => x / 255.0));
+  print(new_colors);
+  
   gl.bindBuffer(ARRAY_BUFFER, cbuf);
-  gl.bufferData(ARRAY_BUFFER, new Float32List.fromList(colors), STATIC_DRAW);
+  gl.bufferData(ARRAY_BUFFER, new Float32List.fromList(new_colors), STATIC_DRAW);
 }
 
 
@@ -382,23 +434,23 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   // and now we tetra
   tetra_mvPushMatrix();
 
-  tetra_mvMatrix.translate(tetra.pos);
-  tetra_mvMatrix.rotateY(radians(tetra.ang)).rotateX(radians(tetra.ang));
+  tetra_mvMatrix.translate(icosa.pos);
+  tetra_mvMatrix.rotateY(radians(icosa.ang)).rotateX(radians(icosa.ang));
   
-  gl.bindBuffer(ARRAY_BUFFER, tetra.posBuf);
+  gl.bindBuffer(ARRAY_BUFFER, icosa.posBuf);
   // Set the vertex attribute to the size of each individual element (x,y,z)
   gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
   
-  gl.bindBuffer(ELEMENT_ARRAY_BUFFER, tetra.indexBuf);
+  gl.bindBuffer(ELEMENT_ARRAY_BUFFER, icosa.indexBuf);
   gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
 
-  gl.bindBuffer(ARRAY_BUFFER, tetra.colorBuf);
+  gl.bindBuffer(ARRAY_BUFFER, icosa.colorBuf);
   gl.vertexAttribPointer(prog.attributes['aVertexColor'], 4, FLOAT, false, 0, 0);
   
   
   gl.uniformMatrix4fv(prog.uniforms['uPMatrix'], false, pMatrix.buf);
   gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, tetra_mvMatrix.buf);
-  gl.drawElements(TRIANGLES, 12, UNSIGNED_SHORT, 0);
+  gl.drawElements(TRIANGLES, 30, UNSIGNED_SHORT, 0);
 
   
 // Finally, reset the matrix back to what it was before we moved around.
