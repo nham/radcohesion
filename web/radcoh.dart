@@ -39,7 +39,7 @@ void main() {
     if (lastTime != 0) {
       var elapsed = now - lastTime;
       triGrid.ang += (60 * elapsed) / 1000.0;
-      icosa.ang += (10 * elapsed) / 1000.0;
+      icosa.ang += (13 * elapsed) / 1000.0;
     }
     
     lastTime = now;
@@ -61,7 +61,7 @@ RenderingContext glContextSetup(CanvasElement canvas) {
     throw "There's no 3d WebGL thingy. Whatever that is. Barf.";
   }
   
-  gl.clearColor(0.08, 0.0, 0.0, 1.0);
+  gl.clearColor(0.5, 0.5, 0.5, 1.0);
   gl.clearDepth(1.0);
   
   // set the GL viewport to the same size as the canvas element so there's no resizing
@@ -302,26 +302,47 @@ void icosaBufferSetup(RenderingContext gl) {
   addVtoa(w5);
   addVtoa(w1);
   
+  // w3, v1, w4, v2, w5, v3, w1, v4, w2, v5, w3
+  
+  addVtoa(w3);
   addVtoa(v1);
+  addVtoa(w4);
+ 
+  addVtoa(v1);
+  addVtoa(w4);
   addVtoa(v2);
+
+  addVtoa(w4);
+  addVtoa(v2);
+  addVtoa(w5);
+
+  addVtoa(v2);
+  addVtoa(w5);
   addVtoa(v3);
   
-  addVtoa(v1);
+  addVtoa(w5);
   addVtoa(v3);
-  addVtoa(v4);
+  addVtoa(w1);
   
-  addVtoa(v1);
+  addVtoa(v3);
+  addVtoa(w1);
   addVtoa(v4);
+
+  addVtoa(w1);
+  addVtoa(v4);
+  addVtoa(w2);
+
+  addVtoa(v4);
+  addVtoa(w2);
   addVtoa(v5);
   
-  addVtoa(v1);
+  addVtoa(w2);
   addVtoa(v5);
-  addVtoa(v6);
+  addVtoa(w3);
   
+  addVtoa(v5);
+  addVtoa(w3);
   addVtoa(v1);
-  addVtoa(v6);
-  addVtoa(v2);
-  
   
   print(a);
   
@@ -331,7 +352,7 @@ void icosaBufferSetup(RenderingContext gl) {
   pbuf = gl.createBuffer();
   ibuf = gl.createBuffer();
   cbuf = gl.createBuffer();
-  icosa = new Figure(pbuf, ibuf, cbuf, [0.0, -4.0, -18.0], 0.0);
+  icosa = new Figure(pbuf, ibuf, cbuf, [0.0, -3.0, -16.0], 0.0);
 
   
   gl.bindBuffer(ARRAY_BUFFER, pbuf);
@@ -342,7 +363,13 @@ void icosaBufferSetup(RenderingContext gl) {
                             6,  7,  8,   9, 10, 11,
                            12, 13, 14,  15, 16, 17,
                            18, 19, 20,  21, 22, 23,
-                           24, 25, 26,  27, 28, 29
+                           24, 25, 26,  27, 28, 29,
+                           
+                           30, 31, 32,  33, 34, 35,
+                           36, 37, 38,  39, 40, 41, 
+                           42, 43, 44,  45, 46, 47, 
+                           48, 49, 50,  51, 52, 53,
+                           54, 55, 56,  57, 58, 59
                           ];
   
   gl.bindBuffer(ELEMENT_ARRAY_BUFFER, ibuf);
@@ -381,7 +408,38 @@ void icosaBufferSetup(RenderingContext gl) {
                 232.0,  171.0,  48.0,  255 * 0.65, 
                 255.0,  71.0,  117.0,  255 * 0.65, // SALMON
                 255.0,  71.0,  117.0,  255 * 0.65, 
-                255.0,  71.0,  117.0,  255 * 0.65
+                255.0,  71.0,  117.0,  255 * 0.65,
+                
+                255.0,  255.0,  255.0,  255.0, 
+                255.0,  255.0,  255.0,  255.0, 
+                255.0,  255.0,  255.0,  255.0, 
+                0.0,  0.0,  0.0,  255.0, 
+                0.0,  0.0,  0.0,  255.0, 
+                0.0,  0.0,  0.0,  255.0, 
+                255.0,  255.0,  255.0,  255.0, 
+                255.0,  255.0,  255.0,  255.0, 
+                255.0,  255.0,  255.0,  255.0, 
+                0.0,  0.0,  0.0,  255.0, 
+                0.0,  0.0,  0.0,  255.0, 
+                0.0,  0.0,  0.0,  255.0, 
+                255.0,  255.0,  255.0,  255.0, 
+                255.0,  255.0,  255.0,  255.0, 
+                255.0,  255.0,  255.0,  255.0, 
+                0.0,  0.0,  0.0,  255.0, 
+                0.0,  0.0,  0.0,  255.0, 
+                0.0,  0.0,  0.0,  255.0, 
+                255.0,  255.0,  255.0,  255.0, 
+                255.0,  255.0,  255.0,  255.0, 
+                255.0,  255.0,  255.0,  255.0, 
+                0.0,  0.0,  0.0,  255.0, 
+                0.0,  0.0,  0.0,  255.0, 
+                0.0,  0.0,  0.0,  255.0,  
+                255.0,  255.0,  255.0,  255.0, 
+                255.0,  255.0,  255.0,  255.0, 
+                255.0,  255.0,  255.0,  255.0, 
+                0.0,  0.0,  0.0,  255.0, 
+                0.0,  0.0,  0.0,  255.0, 
+                0.0,  0.0,  0.0,  255.0
                 ];
   
   var new_colors = new List.from(colors.map((x) => x / 255.0));
@@ -470,7 +528,7 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   
   gl.uniformMatrix4fv(prog.uniforms['uPMatrix'], false, pMatrix.buf);
   gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, tetra_mvMatrix.buf);
-  gl.drawElements(TRIANGLES, 30, UNSIGNED_SHORT, 0);
+  gl.drawElements(TRIANGLES, 60, UNSIGNED_SHORT, 0);
 
   
 // Finally, reset the matrix back to what it was before we moved around.
