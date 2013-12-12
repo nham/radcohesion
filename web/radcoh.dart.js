@@ -2276,6 +2276,23 @@ Symbol_getName: function(symbol) {
   return symbol.get$_name();
 },
 
+ListIterable: {"": "IterableBase;",
+  get$iterator: function(_) {
+    return new H.ListIterator(this, this.get$length(this), 0, null);
+  },
+  forEach$1: function(_, action) {
+    var $length, i;
+    $length = this.get$length(this);
+    for (i = 0; i < $length; ++i) {
+      action.call$1(this.elementAt$1(this, i));
+      if ($length !== this.get$length(this))
+        throw H.wrapException(P.ConcurrentModificationError$(this));
+    }
+  },
+  $asIterableBase: null,
+  $isEfficientLength: true
+},
+
 ListIterator: {"": "Object;_iterable,_length,_index,_current",
   get$current: function() {
     return this._current;
@@ -2349,6 +2366,22 @@ MappedIterator: {"": "Iterator;_current,_iterator,_f",
   $asIterator: function($S, $T) {
     return [$T];
   }
+},
+
+MappedListIterable: {"": "ListIterable;_source,_f",
+  _f$1: function(arg0) {
+    return this._f.call$1(arg0);
+  },
+  get$length: function(_) {
+    return J.get$length$asx(this._source);
+  },
+  elementAt$1: function(_, index) {
+    return this._f$1(J.elementAt$1$ax(this._source, index));
+  },
+  $asListIterable: function($S, $T) {
+    return [$T];
+  },
+  $isEfficientLength: true
 },
 
 FixedLengthListMixin: {"": "Object;"}}],
@@ -5553,7 +5586,7 @@ main: function() {
   p = E.programSetup(t1.gl_0);
   t1.gl_0.useProgram(p.program);
   E.gridBufferSetup(t1.gl_0);
-  E.tetraBufferSetup(t1.gl_0);
+  E.icosaBufferSetup(t1.gl_0);
   t1.lastTime_1 = 0;
   new E.main_tick(t1, canvas, p, new E.main_animate(t1)).call$1(0);
 },
@@ -5635,51 +5668,75 @@ gridBufferSetup: function(gl) {
   gl.bufferData(34962, t1, 35044);
 },
 
-tetraBufferSetup: function(gl) {
-  var t1, x, y, t2, t3, va, vb, vc, vd, a, pbuf, ibuf, cbuf, colors;
-  t1 = new E.tetraBufferSetup_scaleV();
-  x = Math.cos(1.0471975511965976);
-  y = Math.sin(1.0471975511965976);
-  Math.tan(1.0471975511965976);
-  t2 = Math.sqrt(3);
-  t3 = Math.sqrt(0.6666666666666666);
-  va = [0, 0, 0];
-  vb = t1.call$2([1, 0, 0], 3);
-  vc = t1.call$2([-x, -y, 0], -3);
-  vd = t1.call$2([0.5, t2 / 6, t3], 3);
+icosaBufferSetup: function(gl) {
+  var t1, a, t2, phi, v1, v2, v3, v4, v5, v6, pbuf, ibuf, cbuf, new_colors;
+  t1 = new E.icosaBufferSetup_scaleV();
   a = P.List_List(null, null);
-  t3 = new E.tetraBufferSetup_addVtoa(a);
-  t3.call$1(va);
-  t3.call$1(vb);
-  t3.call$1(vc);
-  t3.call$1(va);
-  t3.call$1(vb);
-  t3.call$1(vd);
-  t3.call$1(vb);
-  t3.call$1(vc);
-  t3.call$1(vd);
-  t3.call$1(vc);
-  t3.call$1(va);
-  t3.call$1(vd);
+  t2 = new E.icosaBufferSetup_addVtoa(a);
+  phi = (1 + Math.sqrt(5)) / 2;
+  v1 = [0, 1, phi];
+  v2 = [0, -1, phi];
+  v3 = [-phi, 0, 1];
+  v4 = [-1, phi, 0];
+  v5 = [1, phi, 0];
+  v6 = [phi, 0, 1];
+  t2.call$1(v1);
+  t2.call$1(v2);
+  t2.call$1(v3);
+  t2.call$1(v1);
+  t2.call$1(v3);
+  t2.call$1(v4);
+  t2.call$1(v1);
+  t2.call$1(v4);
+  t2.call$1(v5);
+  t2.call$1(v1);
+  t2.call$1(v5);
+  t2.call$1(v6);
+  t2.call$1(v1);
+  t2.call$1(v6);
+  t2.call$1(v2);
+  v1 = t1.call$2(v1, -1);
+  v2 = t1.call$2(v2, -1);
+  v3 = t1.call$2(v3, -1);
+  v4 = t1.call$2(v4, -1);
+  v5 = t1.call$2(v5, -1);
+  v6 = t1.call$2(v6, -1);
+  t2.call$1(v1);
+  t2.call$1(v2);
+  t2.call$1(v3);
+  t2.call$1(v1);
+  t2.call$1(v3);
+  t2.call$1(v4);
+  t2.call$1(v1);
+  t2.call$1(v4);
+  t2.call$1(v5);
+  t2.call$1(v1);
+  t2.call$1(v5);
+  t2.call$1(v6);
+  t2.call$1(v1);
+  t2.call$1(v6);
+  t2.call$1(v2);
   P.print(a);
   pbuf = gl.createBuffer();
   ibuf = gl.createBuffer();
   cbuf = gl.createBuffer();
-  $.tetra = new E.Figure(pbuf, ibuf, cbuf, [0, -3, -18], 0);
+  $.icosa = new E.Figure(pbuf, ibuf, cbuf, [0, -4, -18], 0);
   gl.bindBuffer(34962, pbuf);
-  t3 = new Float32Array(a);
-  t3.$dartCachedLength = t3.length;
-  gl.bufferData(34962, t3, 35044);
+  t1 = new Float32Array(a);
+  t1.$dartCachedLength = t1.length;
+  gl.bufferData(34962, t1, 35044);
   gl.bindBuffer(34963, ibuf);
-  t3 = new Uint16Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
-  t3.$dartCachedLength = t3.length;
-  gl.bufferData(34963, t3, 35044);
-  colors = [1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
-  P.print("lens: " + a.length + ", " + colors.length);
+  t1 = new Uint16Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]);
+  t1.$dartCachedLength = t1.length;
+  gl.bufferData(34963, t1, 35044);
+  t1 = new H.MappedListIterable([192, 62, 255, 255, 192, 62, 255, 255, 192, 62, 255, 255, 48, 186, 232, 255, 48, 186, 232, 255, 48, 186, 232, 255, 121, 255, 65, 255, 121, 255, 65, 255, 121, 255, 65, 255, 232, 171, 48, 255, 232, 171, 48, 255, 232, 171, 48, 255, 255, 71, 117, 255, 255, 71, 117, 255, 255, 71, 117, 255, 192, 62, 255, 165.75, 192, 62, 255, 165.75, 192, 62, 255, 165.75, 48, 186, 232, 165.75, 48, 186, 232, 165.75, 48, 186, 232, 165.75, 121, 255, 65, 165.75, 121, 255, 65, 165.75, 121, 255, 65, 165.75, 232, 171, 48, 165.75, 232, 171, 48, 165.75, 232, 171, 48, 165.75, 255, 71, 117, 165.75, 255, 71, 117, 165.75, 255, 71, 117, 165.75], new E.icosaBufferSetup_closure());
+  H.setRuntimeTypeInfo(t1, [null, null]);
+  new_colors = P.List_List$from(t1, true, null);
+  P.print(new_colors);
   gl.bindBuffer(34962, cbuf);
-  t3 = new Float32Array(colors);
-  t3.$dartCachedLength = t3.length;
-  gl.bufferData(34962, t3, 35044);
+  t1 = new Float32Array(new_colors);
+  t1.$dartCachedLength = t1.length;
+  gl.bufferData(34962, t1, 35044);
 },
 
 drawScene: function(gl, prog, aspect) {
@@ -5713,17 +5770,17 @@ drawScene: function(gl, prog, aspect) {
   t4.$dartCachedLength = t4.length;
   t3.push(new E.Matrix4(t4));
   t4 = $.tetra_mvMatrix;
-  t4.translate$1(t4, $.tetra.pos);
-  $.tetra_mvMatrix.rotateY$1($.tetra.ang * 0.017453292519943295).rotateX$1($.tetra.ang * 0.017453292519943295);
-  gl.bindBuffer(34962, $.tetra.posBuf);
+  t4.translate$1(t4, $.icosa.pos);
+  $.tetra_mvMatrix.rotateY$1($.icosa.ang * 0.017453292519943295).rotateX$1($.icosa.ang * 0.017453292519943295);
+  gl.bindBuffer(34962, $.icosa.posBuf);
   gl.vertexAttribPointer(t2.$index(t2, "aVertexPosition"), 3, 5126, false, 0, 0);
-  gl.bindBuffer(34963, $.tetra.indexBuf);
+  gl.bindBuffer(34963, $.icosa.indexBuf);
   gl.vertexAttribPointer(t2.$index(t2, "aVertexPosition"), 3, 5126, false, 0, 0);
-  gl.bindBuffer(34962, $.tetra.colorBuf);
+  gl.bindBuffer(34962, $.icosa.colorBuf);
   gl.vertexAttribPointer(t2.$index(t2, "aVertexColor"), 4, 5126, false, 0, 0);
   gl.uniformMatrix4fv(t1.$index(t1, "uPMatrix"), false, $.pMatrix.buf);
   gl.uniformMatrix4fv(t1.$index(t1, "uMVMatrix"), false, $.tetra_mvMatrix.buf);
-  gl.drawElements(4, 12, 5123, 0);
+  gl.drawElements(4, 30, 5123, 0);
   t1 = $.get$mvStack();
   if (0 >= t1.length)
     throw H.ioore(t1, 0);
@@ -6060,7 +6117,7 @@ main_animate: {"": "Closure;box_0",
       if (typeof elapsed !== "number")
         throw H.iae(elapsed);
       t2.ang = t3 + 60 * elapsed / 1000;
-      t3 = $.tetra;
+      t3 = $.icosa;
       t3.ang = t3.ang + 10 * elapsed / 1000;
     }
     t1.lastTime_1 = now;
@@ -6109,7 +6166,7 @@ genGridPointList_addV: {"": "Closure;",
   $is_args2: true
 },
 
-tetraBufferSetup_scaleV: {"": "Closure;",
+icosaBufferSetup_scaleV: {"": "Closure;",
   call$2: function(xs, c) {
     var t1, t2;
     t1 = J.getInterceptor$asx(xs);
@@ -6119,7 +6176,7 @@ tetraBufferSetup_scaleV: {"": "Closure;",
   $is_args2: true
 },
 
-tetraBufferSetup_addV: {"": "Closure;",
+icosaBufferSetup_addV: {"": "Closure;",
   call$2: function(u, v) {
     var t1, t2;
     t1 = J.getInterceptor$asx(u);
@@ -6129,7 +6186,7 @@ tetraBufferSetup_addV: {"": "Closure;",
   $is_args2: true
 },
 
-tetraBufferSetup_addVtoa: {"": "Closure;a_0",
+icosaBufferSetup_addVtoa: {"": "Closure;a_0",
   call$1: function(v) {
     var t1, t2;
     t1 = this.a_0;
@@ -6138,6 +6195,15 @@ tetraBufferSetup_addVtoa: {"": "Closure;a_0",
     t1.push(t2.$index(v, 1));
     t1.push(t2.$index(v, 2));
     return t1;
+  },
+  $is_args1: true
+},
+
+icosaBufferSetup_closure: {"": "Closure;",
+  call$1: function(x) {
+    if (typeof x !== "number")
+      throw x.$div();
+    return x / 255;
   },
   $is_args1: true
 },
@@ -6427,7 +6493,7 @@ $.Expando__keyCount = 0;
 $.Device__isOpera = null;
 $.Device__isWebKit = null;
 $.triGrid = null;
-$.tetra = null;
+$.icosa = null;
 $.pMatrix = null;
 $.grid_mvMatrix = null;
 $.tetra_mvMatrix = null;
@@ -6466,6 +6532,9 @@ J.$sub$n = function(receiver, a0) {
 };
 J.clearColor$4$x = function(receiver, a0, a1, a2, a3) {
   return J.getInterceptor$x(receiver).clearColor$4(receiver, a0, a1, a2, a3);
+};
+J.elementAt$1$ax = function(receiver, a0) {
+  return J.getInterceptor$ax(receiver).elementAt$1(receiver, a0);
 };
 J.forEach$1$ax = function(receiver, a0) {
   return J.getInterceptor$ax(receiver).forEach$1(receiver, a0);
