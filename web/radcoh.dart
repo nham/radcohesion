@@ -246,41 +246,61 @@ void icosaBufferSetup(RenderingContext gl) {
   
   double s = 3.0;
   
-  List<double> v1 = [ 0.0,  1.0, phi];
-  List<double> v2 = [ 0.0, -1.0, phi];
-  List<double> v3 = [-phi,  0.0, 1.0];
-  List<double> v4 = [-1.0,  phi, 0.0];
-  List<double> v5 = [ 1.0,  phi, 0.0];
-  List<double> v6 = [ phi,  0.0, 1.0];
+  List<double> top = [ 0.0,  1.0, phi];
+  List<double> v1 = [ 0.0, -1.0, phi];
+  List<double> v2 = [-phi,  0.0, 1.0];
+  List<double> v3 = [-1.0,  phi, 0.0];
+  List<double> v4 = [ 1.0,  phi, 0.0];
+  List<double> v5 = [ phi,  0.0, 1.0];
  
 
+  addVtoa(top);
   addVtoa(v1);
+  addVtoa(v2);
+  
+  addVtoa(top);
   addVtoa(v2);
   addVtoa(v3);
   
-  addVtoa(v1);
+  addVtoa(top);
   addVtoa(v3);
   addVtoa(v4);
   
-  addVtoa(v1);
+  addVtoa(top);
   addVtoa(v4);
   addVtoa(v5);
   
-  addVtoa(v1);
+  addVtoa(top);
   addVtoa(v5);
-  addVtoa(v6);
-  
   addVtoa(v1);
-  addVtoa(v6);
-  addVtoa(v2);
   
   // invert!
-  v1 = scaleV(v1, -1.0);
-  v2 = scaleV(v2, -1.0);
-  v3 = scaleV(v3, -1.0);
-  v4 = scaleV(v4, -1.0);
-  v5 = scaleV(v5, -1.0);
-  v6 = scaleV(v6, -1.0);
+  var bot = scaleV(top, -1.0);
+  var w1 = scaleV(v1, -1.0);
+  var w2 = scaleV(v2, -1.0);
+  var w3 = scaleV(v3, -1.0);
+  var w4 = scaleV(v4, -1.0);
+  var w5 = scaleV(v5, -1.0);
+  
+  addVtoa(bot);
+  addVtoa(w1);
+  addVtoa(w2);
+  
+  addVtoa(bot);
+  addVtoa(w2);
+  addVtoa(w3);
+  
+  addVtoa(bot);
+  addVtoa(w3);
+  addVtoa(w4);
+  
+  addVtoa(bot);
+  addVtoa(w4);
+  addVtoa(w5);
+  
+  addVtoa(bot);
+  addVtoa(w5);
+  addVtoa(w1);
   
   addVtoa(v1);
   addVtoa(v2);
