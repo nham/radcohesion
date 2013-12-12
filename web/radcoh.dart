@@ -51,6 +51,7 @@ void main() {
    animate(t);
    drawScene(gl, p, canvas.width / canvas.height);
   }
+  
   tick(0);
 }
 
@@ -168,6 +169,7 @@ List<double> genGridPointList() {
   return a;
 }
 
+
 void gridBufferSetup(RenderingContext gl) {
   // I think there's a notion of a "current" array buffer, whatever an array buffer is
   // and all buffer operations to array buffers apply only to the current one?
@@ -202,7 +204,7 @@ void gridBufferSetup(RenderingContext gl) {
   gl.bindBuffer(ELEMENT_ARRAY_BUFFER, ibuf);
   gl.bufferDataTyped(ELEMENT_ARRAY_BUFFER, 
       new Uint16List.fromList(gridPointsIndices), STATIC_DRAW);
-  
+
 
   var colors = [1.0,  1.0,  1.0,  1.0,    // notblack
                 1.0,  0.0,  0.0,  1.0,    // red
@@ -223,12 +225,6 @@ void gridBufferSetup(RenderingContext gl) {
   gl.bufferData(ARRAY_BUFFER, new Float32List.fromList(colors), STATIC_DRAW);
 
   
-  /*
-  gridShapeIndexBuffer = gl.createBuffer();
-  gl.bindBuffer(ARRAY_BUFFER, gridShapeIndexBuffer);
-  gl.bufferDataTyped(ELEMENT_ARRAY_BUFFER, 
-      new Uint16List.fromList([0,4,8]), STATIC_DRAW);
-  */
 }
 
 
@@ -494,7 +490,7 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   gl.bindBuffer(ARRAY_BUFFER, triGrid.posBuf);
   // Set the vertex attribute to the size of each individual element (x,y,z)
   gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
-  
+
   gl.bindBuffer(ELEMENT_ARRAY_BUFFER, triGrid.indexBuf);
   gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
 
