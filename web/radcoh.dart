@@ -32,7 +32,7 @@ void main() {
   
   genGridPointList();
   
-  /*
+  
   gridBufferSetup(gl);
   icosaBufferSetup(gl);
   
@@ -56,7 +56,7 @@ void main() {
   }
   
   tick(0);
-  */
+  
 }
 
 RenderingContext glContextSetup(CanvasElement canvas) {
@@ -147,7 +147,6 @@ List<double> genGridPointList() {
   List<List<List<double>>> a = new List(5);
   
   for(var i = 0; i < 5; i++) {
-    print(i);
     var x = scaleV(u2, i * s/4);
     x = addV(x, v);
     a[i] = new List();
@@ -159,12 +158,30 @@ List<double> genGridPointList() {
     }
   }
   
-  print(a);
-  
   // we'll return this later
-  List<double> b = new List();
+  List<List<double>> b = new List();
   
-  return b;
+  for(var i = 0; i < 4; i++) {
+    for(var j = 0; j < 4 - i; j++) {
+     b.add(a[i][j]);
+     b.add(a[i+1][j]);
+    }
+    b..add(a[i][4-i]);
+  }
+  
+  print("b length = ${b.length}");
+  
+  List<double> c = new List();
+  addVtoc (v) => c..add(v[0])..add(v[1])..add(v[2]);
+  for(var i = 7, off = 0; i >= 1; off = i+2, i -= 2) {
+    print("i = $i, off = $off");
+    for(var j = 0; j < i; j++) {
+      addVtoc(b[j]);
+      addVtoc(b[j+1]);
+      addVtoc(b[j+2]);
+    }
+  }
+  return c;
 }
 
 
@@ -187,33 +204,49 @@ void gridBufferSetup(RenderingContext gl) {
   
   var a = genGridPointList();  
   
-  print(a);
+  print(a.length);
   
   gl.bindBuffer(ARRAY_BUFFER, pbuf);
   gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(a), STATIC_DRAW);
   
   
-  var gridPointsIndices = [0, 5, 1, 6, 2, 7, 3, 8, 4];
+  var gridPointsIndices = [ 0,  1,  2,  3,  4,  5,  6,  7,  8,
+                            9, 10, 11, 12, 13, 14, 15, 16, 17,
+                           18, 19, 20,
+                           
+                           21, 22, 23, 24, 25, 26, 27, 28,
+                           29, 30, 31, 32, 33, 34];
 
   
   gl.bindBuffer(ELEMENT_ARRAY_BUFFER, ibuf);
   gl.bufferDataTyped(ELEMENT_ARRAY_BUFFER, 
       new Uint16List.fromList(gridPointsIndices), STATIC_DRAW);
-
-
-  var colors = [1.0,  1.0,  1.0,  1.0,    // notblack
-                1.0,  0.0,  0.0,  1.0,    // red
-                1.0,  0.0,  0.0,  1.0,    // red
-                1.0,  0.0,  0.0,  1.0,    // red
-                1.0,  1.0,  1.0,  1.0,    // notblack
-                0.0,  1.0,  0.0,  1.0,    // green
-                0.0,  1.0,  0.0,  1.0,    // green
-                0.0,  1.0,  0.0,  1.0,    // green
-                1.0,  1.0,  1.0,  1.0,    // notblack
-                0.0,  0.0,  1.0,  1.0,    // blue
-                0.0,  0.0,  1.0,  1.0,    // blue
-                0.0,  0.0,  1.0,  1.0     // blue
-                ];
+  
+  var r = [1.0, 0.0, 0.0, 1.0],
+      g = [0.0, 1.0, 0.0, 1.0],
+      b = [0.0, 0.0, 1.0, 1.0];
+  
+  var colors = new List();
+  addColor(v) => colors..add(v[0])..add(v[1])..add(v[2])..add(v[3]);
+  
+  add3(v) {
+    addColor(v);
+    addColor(v);
+    addColor(v);
+  }
+  
+  add3(r);
+  add3(g);
+  add3(b);
+  add3(r);
+  add3(g);
+  add3(b);
+  add3(r);
+  add3(g);
+  add3(b);
+  add3(r);
+  add3(g);
+  add3(b);
   
   print("lens: ${a.length}, ${colors.length}");
   gl.bindBuffer(ARRAY_BUFFER, cbuf);
@@ -335,8 +368,6 @@ void icosaBufferSetup(RenderingContext gl) {
   addVtoa(w3);
   addVtoa(v1);
   
-  print(a);
-  
   
   Buffer pbuf, ibuf, cbuf;
 
@@ -367,71 +398,50 @@ void icosaBufferSetup(RenderingContext gl) {
   gl.bufferDataTyped(ELEMENT_ARRAY_BUFFER, 
       new Uint16List.fromList(gridPointsIndices), STATIC_DRAW);
   
+  var colors = new List();
+  addColor(v) => colors..add(v[0])..add(v[1])..add(v[2])..add(v[3]);
   
-  var colors = [
-                192.0,  62.0,  255.0,  255.0, //purp
-                192.0,  62.0,  255.0,  255.0,
-                192.0,  62.0,  255.0,  255.0,
-                48.0,  186.0,  232.0,  255.0, // blue
-                48.0,  186.0,  232.0,  255.0,
-                48.0,  186.0,  232.0,  255.0,
-                121.0,  255.0,  65.0,  255.0, // green
-                121.0,  255.0,  65.0,  255.0,
-                121.0,  255.0,  65.0,  255.0,
-                232.0,  171.0,  48.0,  255.0, // orangeutan
-                232.0,  171.0,  48.0,  255.0, 
-                232.0,  171.0,  48.0,  255.0, 
-                255.0,  71.0,  117.0,  255.0, // SALMON
-                255.0,  71.0,  117.0,  255.0, 
-                255.0,  71.0,  117.0,  255.0, 
-                
-                192.0,  62.0,  255.0,  255 * 0.65, //purp
-                192.0,  62.0,  255.0,  255 * 0.65,
-                192.0,  62.0,  255.0,  255 * 0.65,
-                48.0,  186.0,  232.0,  255 * 0.65, // blue
-                48.0,  186.0,  232.0,  255 * 0.65,
-                48.0,  186.0,  232.0,  255 * 0.65,
-                121.0,  255.0,  65.0,  255 * 0.65, // green
-                121.0,  255.0,  65.0,  255 * 0.65,
-                121.0,  255.0,  65.0,  255 * 0.65,
-                232.0,  171.0,  48.0,  255 * 0.65, // orangeutan
-                232.0,  171.0,  48.0,  255 * 0.65, 
-                232.0,  171.0,  48.0,  255 * 0.65, 
-                255.0,  71.0,  117.0,  255 * 0.65, // SALMON
-                255.0,  71.0,  117.0,  255 * 0.65, 
-                255.0,  71.0,  117.0,  255 * 0.65,
-                
-                255.0,  255.0,  255.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0,  
-                255.0,  255.0,  255.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0
-                ];
+  add3(v) {
+    addColor(v);
+    addColor(v);
+    addColor(v);
+  }
+  
+  var purp   = [192.0,  62.0,  255.0,  255.0],
+      blue   = [48.0,  186.0,  232.0,  255.0],
+      green  = [121.0,  255.0,  65.0,  255.0],
+      orange = [232.0,  171.0,  48.0,  255.0],
+      salmon = [255.0,  71.0,  117.0,  255.0],
+      purp_l   = [192.0,  62.0,  255.0,  255.0 * 0.65],
+      blue_l   = [48.0,  186.0,  232.0,  255.0 * 0.65],
+      green_l  = [121.0,  255.0,  65.0,  255.0 * 0.65],
+      orange_l = [232.0,  171.0,  48.0,  255.0 * 0.65],
+      salmon_l = [255.0,  71.0,  117.0,  255.0 * 0.65],
+      white = [255.0,  255.0,  255.0,  255.0],
+      black = [0.0,  0.0,  0.0,  255.0];
+  
+  add3(purp);
+  add3(blue);
+  add3(green);
+  add3(orange);
+  add3(salmon);
+  
+  add3(purp_l);
+  add3(blue_l);
+  add3(green_l);
+  add3(orange_l);
+  add3(salmon_l);
+  
+  add3(white);
+  add3(black);
+  add3(white);
+  add3(black);
+  add3(white);
+  add3(black);
+  add3(white);
+  add3(black);
+  add3(white);
+  add3(black);
   
   var new_colors = new List.from(colors.map((x) => x / 255.0));
   print(new_colors);
@@ -495,7 +505,7 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   
   gl.uniformMatrix4fv(prog.uniforms['uPMatrix'], false, pMatrix.buf);
   gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, grid_mvMatrix.buf);
-  gl.drawElements(LINES, 24, UNSIGNED_SHORT, 0);
+  gl.drawElements(TRIANGLES, 35, UNSIGNED_SHORT, 0);
   
   grid_mvPopMatrix();
   
