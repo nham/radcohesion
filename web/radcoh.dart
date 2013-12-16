@@ -30,6 +30,9 @@ void main() {
   var p = programSetup(gl);
   gl.useProgram(p.program);
   
+  genGridPointList();
+  
+  /*
   gridBufferSetup(gl);
   icosaBufferSetup(gl);
   
@@ -53,6 +56,7 @@ void main() {
   }
   
   tick(0);
+  */
 }
 
 RenderingContext glContextSetup(CanvasElement canvas) {
@@ -133,40 +137,34 @@ List<double> genGridPointList() {
   
   double s = 3.2;
   double hs = s / 2;
-  double sc = s / 4; // used scale u1 through u3 when generating the coords
   
   List<double> u1 = [1.0, 0.0, 0.0]; // from the leftmost going to rightmost
-  List<double> u2 = [ -x,   y, 0.0]; // from the rightmost going to topmost
-  List<double> u3 = [ -x,  -y, 0.0]; // from the topmost going to leftmost
+  List<double> u2 = [  x,   y, 0.0]; // from the topmost going to leftmost
   
   List<double> v = [-hs, -hs/sl, 0.0]; // vector from the center of the triangle to the leftmost vertex
   
   // we'll return this later
-  List<double> a = new List();
+  List<List<List<double>>> a = new List(5);
   
   for(var i = 0; i < 5; i++) {
-    var x = scaleV(u1, i * sc);
+    print(i);
+    var x = scaleV(u2, i * s/4);
     x = addV(x, v);
-    a..add(x[0])..add(x[1])..add(x[2]);
+    a[i] = new List();
+    a[i].add(x);
+    
+    for(var j = 1; j < 5 - i; j++) {
+      var y = scaleV(u1, j * s/4);
+      a[i].add( addV(x, y) );
+    }
   }
   
-  List<double> rm = a.sublist(3*4, 3*5);
-
-  for(var i = 1; i < 5; i++) {
-    var x = scaleV(u2, i * sc);
-    x = addV(x, rm);
-    a..add(x[0])..add(x[1])..add(x[2]);
-  }
+  print(a);
   
-  List<double> tm = a.sublist(3*8, 3*9); // topmost
-
-  for(var i = 1; i < 4; i++) {
-    var x = scaleV(u3, i * sc);
-    x = addV(x, tm);
-    a..add(x[0])..add(x[1])..add(x[2]);
-  }
+  // we'll return this later
+  List<double> b = new List();
   
-  return a;
+  return b;
 }
 
 
@@ -189,17 +187,14 @@ void gridBufferSetup(RenderingContext gl) {
   
   var a = genGridPointList();  
   
+  print(a);
+  
   gl.bindBuffer(ARRAY_BUFFER, pbuf);
   gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(a), STATIC_DRAW);
   
   
-  var gridPointsIndices = [0, 4, 4, 8, 8, 0, // outer vertices of triangle
-      1, 7,  1, 11, // lines involving 1
-      2, 6,  2, 10, // lines involving 2
-      3, 5,  3, 9,  // lines involving 3
-      5, 11,
-      6, 10,
-      7, 9];
+  var gridPointsIndices = [0, 5, 1, 6, 2, 7, 3, 8, 4];
+
   
   gl.bindBuffer(ELEMENT_ARRAY_BUFFER, ibuf);
   gl.bufferDataTyped(ELEMENT_ARRAY_BUFFER, 
