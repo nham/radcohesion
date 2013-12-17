@@ -284,107 +284,80 @@ void icosaBufferSetup(RenderingContext gl) {
   addVtoa (v) => a..add(v[0])..add(v[1])..add(v[2]);
   
   double phi = (1 + sqrt(5))/2;
-  List<double> v = [0.0, 1.0, phi];
   
   double s = 3.0;
   
   List<double> top = [ 0.0,  1.0, phi];
-  List<double> v1 = [ 0.0, -1.0, phi];
-  List<double> v2 = [-phi,  0.0, 1.0];
-  List<double> v3 = [-1.0,  phi, 0.0];
-  List<double> v4 = [ 1.0,  phi, 0.0];
-  List<double> v5 = [ phi,  0.0, 1.0];
- 
 
-  addVtoa(top);
-  addVtoa(v1);
-  addVtoa(v2);
-  
-  addVtoa(top);
-  addVtoa(v2);
-  addVtoa(v3);
-  
-  addVtoa(top);
-  addVtoa(v3);
-  addVtoa(v4);
-  
-  addVtoa(top);
-  addVtoa(v4);
-  addVtoa(v5);
-  
-  addVtoa(top);
-  addVtoa(v5);
-  addVtoa(v1);
+  List<List<double>> v = [[ 0.0, -1.0, phi],
+                          [-phi,  0.0, 1.0],
+                          [-1.0,  phi, 0.0],
+                          [ 1.0,  phi, 0.0],
+                          [ phi,  0.0, 1.0]];
+ 
+  for(var i = 0; i < 5; i++) {
+    addVtoa(top);
+    addVtoa(v[i]);
+    addVtoa(v[(i+1) % 5]);
+  }
+
   
   // invert!
   var bot = scaleV(top, -1.0);
-  var w1 = scaleV(v1, -1.0);
-  var w2 = scaleV(v2, -1.0);
-  var w3 = scaleV(v3, -1.0);
-  var w4 = scaleV(v4, -1.0);
-  var w5 = scaleV(v5, -1.0);
+  //List<List<double>> w = v.map((x) => scaleV(x, -1.0));
+  var w = new List();
+  for(var i = 0; i < v.length; i++) {
+    w.add(scaleV(v[i], -1.0));
+  }
   
-  addVtoa(bot);
-  addVtoa(w1);
-  addVtoa(w2);
-  
-  addVtoa(bot);
-  addVtoa(w2);
-  addVtoa(w3);
-  
-  addVtoa(bot);
-  addVtoa(w3);
-  addVtoa(w4);
-  
-  addVtoa(bot);
-  addVtoa(w4);
-  addVtoa(w5);
-  
-  addVtoa(bot);
-  addVtoa(w5);
-  addVtoa(w1);
+  for(var i = 0; i < 5; i++) {
+    addVtoa(bot);
+    addVtoa(w[i]);
+    addVtoa(w[(i+1) % 5]);
+  }
+
   
   // w3, v1, w4, v2, w5, v3, w1, v4, w2, v5, w3
   
-  addVtoa(w3);
-  addVtoa(v1);
-  addVtoa(w4);
+  addVtoa(w[2]);
+  addVtoa(v[0]);
+  addVtoa(w[3]);
  
-  addVtoa(v1);
-  addVtoa(w4);
-  addVtoa(v2);
+  addVtoa(v[0]);
+  addVtoa(w[3]);
+  addVtoa(v[1]);
 
-  addVtoa(w4);
-  addVtoa(v2);
-  addVtoa(w5);
+  addVtoa(w[3]);
+  addVtoa(v[1]);
+  addVtoa(w[4]);
 
-  addVtoa(v2);
-  addVtoa(w5);
-  addVtoa(v3);
+  addVtoa(v[1]);
+  addVtoa(w[4]);
+  addVtoa(v[2]);
   
-  addVtoa(w5);
-  addVtoa(v3);
-  addVtoa(w1);
+  addVtoa(w[4]);
+  addVtoa(v[2]);
+  addVtoa(w[0]);
   
-  addVtoa(v3);
-  addVtoa(w1);
-  addVtoa(v4);
+  addVtoa(v[2]);
+  addVtoa(w[0]);
+  addVtoa(v[3]);
 
-  addVtoa(w1);
-  addVtoa(v4);
-  addVtoa(w2);
+  addVtoa(w[0]);
+  addVtoa(v[3]);
+  addVtoa(w[1]);
 
-  addVtoa(v4);
-  addVtoa(w2);
-  addVtoa(v5);
+  addVtoa(v[3]);
+  addVtoa(w[1]);
+  addVtoa(v[4]);
   
-  addVtoa(w2);
-  addVtoa(v5);
-  addVtoa(w3);
+  addVtoa(w[1]);
+  addVtoa(v[4]);
+  addVtoa(w[2]);
   
-  addVtoa(v5);
-  addVtoa(w3);
-  addVtoa(v1);
+  addVtoa(v[4]);
+  addVtoa(w[2]);
+  addVtoa(v[0]);
   
   
   Buffer pbuf, ibuf, cbuf;
