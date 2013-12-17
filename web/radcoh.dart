@@ -16,7 +16,7 @@ Figure triGrid, icosa;
 
 void main() {
   grid_mvMatrix = new Matrix4()..identity();
-  tetra_mvMatrix = new Matrix4()..identity();
+  icosa_mvMatrix = new Matrix4()..identity();
   CanvasElement canvas = querySelector("#the-haps");
   
   RenderingContext gl;
@@ -271,7 +271,6 @@ void gridBufferSetup(RenderingContext gl) {
   gl.bindBuffer(ARRAY_BUFFER, cbuf);
   gl.bufferData(ARRAY_BUFFER, new Float32List.fromList(colors), STATIC_DRAW);
 
-  
 }
 
 
@@ -484,15 +483,15 @@ class Figure {
 Matrix4 pMatrix;
 /// Model-View matrices
 Matrix4 grid_mvMatrix;
-Matrix4 tetra_mvMatrix;
+Matrix4 icosa_mvMatrix;
 List<Matrix4> mvStack = new List<Matrix4>();
 
 // fat stacks
 grid_mvPushMatrix() => mvStack.add(new Matrix4.fromMatrix(grid_mvMatrix));
 grid_mvPopMatrix() => grid_mvMatrix = mvStack.removeLast();
 
-tetra_mvPushMatrix() => mvStack.add(new Matrix4.fromMatrix(tetra_mvMatrix));
-tetra_mvPopMatrix() => tetra_mvMatrix = mvStack.removeLast();
+icosa_mvPushMatrix() => mvStack.add(new Matrix4.fromMatrix(icosa_mvMatrix));
+icosa_mvPopMatrix() => icosa_mvMatrix = mvStack.removeLast();
 
 
 void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
@@ -528,11 +527,11 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   grid_mvPopMatrix();
   
   
-  // and now we tetra
-  tetra_mvPushMatrix();
+  // and now we icosa
+  icosa_mvPushMatrix();
 
-  tetra_mvMatrix.translate(icosa.pos);
-  tetra_mvMatrix.rotateY(radians(icosa.ang)).rotateX(radians(icosa.ang));
+  icosa_mvMatrix.translate(icosa.pos);
+  icosa_mvMatrix.rotateY(radians(icosa.ang)).rotateX(radians(icosa.ang));
   
   gl.bindBuffer(ARRAY_BUFFER, icosa.posBuf);
   // Set the vertex attribute to the size of each individual element (x,y,z)
@@ -546,11 +545,11 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   
   
   gl.uniformMatrix4fv(prog.uniforms['uPMatrix'], false, pMatrix.buf);
-  gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, tetra_mvMatrix.buf);
+  gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, icosa_mvMatrix.buf);
   gl.drawElements(TRIANGLES, 60, UNSIGNED_SHORT, 0);
 
   
 // Finally, reset the matrix back to what it was before we moved around.
-  tetra_mvPopMatrix();
+  icosa_mvPopMatrix();
 
 }
