@@ -30,9 +30,6 @@ void main() {
   var p = programSetup(gl);
   gl.useProgram(p.program);
   
-  genGridPointList();
-  
-  
   gridBufferSetup(gl);
   icosaBufferSetup(gl);
   
@@ -109,78 +106,6 @@ GlProgram programSetup(RenderingContext gl) {
 }
 
 
-List<double> genGridPointList() {
-  /*
-   *  Please examine this terrible ASCII triangle to become confused. These are the
-   *  indices of grid points generated
-   * 
-   *         8
-   *         .
-   *     9_ / \ _7
-   *   10_ /   \ _6
-   *  11_ /     \ _5
-   *     /_._._._\
-   *    0  1 2 3  4
-   */
-  
-  scaleV (xs, c) => [c * xs[0], c * xs[1], c * xs[2]];
-  
-  addV (u, v) => [u[0] + v[0], u[1] + v[1], u[2] + v[2]];
-  
-  double x = cos(PI/3);
-  double y = sin(PI/3);
-  double sl = tan(PI/3);
-
-  // all vectors referenced from the leftmost point
-  // we aren't using Vector3 because it internally uses Float32List, which is a
-  // fixed length list, and I'm not sure how to do what I need to do with that.
-  
-  double s = 3.2;
-  double hs = s / 2;
-  
-  List<double> u1 = [1.0, 0.0, 0.0]; // from the leftmost going to rightmost
-  List<double> u2 = [  x,   y, 0.0]; // from the topmost going to leftmost
-  
-  List<double> v = [-hs, -hs/sl, 0.0]; // vector from the center of the triangle to the leftmost vertex
-  
-  List<List<List<double>>> a = new List(5);
-  
-  for(var i = 0; i < 5; i++) {
-    var x = scaleV(u2, i * s/4);
-    x = addV(x, v);
-    a[i] = new List();
-    a[i].add(x);
-    
-    for(var j = 1; j < 5 - i; j++) {
-      var y = scaleV(u1, j * s/4);
-      a[i].add( addV(x, y) );
-    }
-  }
-  
-  List<List<double>> b = new List();
-  
-  for(var i = 0; i < 4; i++) {
-    for(var j = 0; j < 4 - i; j++) {
-     b.add(a[i][j]);
-     b.add(a[i+1][j]);
-    }
-    b..add(a[i][4-i]);
-  }
-  
-  List<double> c = new List();
-  addVtoc (v) => c..add(v[0])..add(v[1])..add(v[2]);
-  for(var i = 7, off = 0; i >= 1; off += i+2, i -= 2) {
-    for(var j = 0; j < i; j++) {
-      var z = off + j;
-      addVtoc(b[z]);
-      addVtoc(b[z+1]);
-      addVtoc(b[z+2]);
-    }
-  }
-  return c;
-}
-
-
 void gridBufferSetup(RenderingContext gl) {
   // I think there's a notion of a "current" array buffer, whatever an array buffer is
   // and all buffer operations to array buffers apply only to the current one?
@@ -197,7 +122,14 @@ void gridBufferSetup(RenderingContext gl) {
   cbuf = gl.createBuffer();
   triGrid = new Figure(pbuf, ibuf, cbuf, [0.0, 1.8, -9.0], 0.0);
   
-  var a = genGridPointList();  
+  double sl = tan(PI/3);
+  double s = 3.2;
+  double hs = s / 2;
+  
+  var a = gridifyTriangle([      -hs,    -hs/sl, 0.0],
+                          [cos(PI/3), sin(PI/3), 0.0],
+                          [      1.0,       0.0, 0.0], 
+                          s);
   
   gl.bindBuffer(ARRAY_BUFFER, pbuf);
   gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(a), STATIC_DRAW);
@@ -270,20 +202,25 @@ void gridBufferSetup(RenderingContext gl) {
   gl.bufferData(ARRAY_BUFFER, new Float32List.fromList(colors), STATIC_DRAW);
 
 }
-/*
-List<double> gridifyTriangle(List<double> leftEdge, List<double> botEdge, double s) {
+
+List<double> gridifyTriangle(List<double> startingPoint,
+                             List<double> leftEdge, 
+                             List<double> botEdge, 
+                             double s) {
   scaleV (xs, c) => [c * xs[0], c * xs[1], c * xs[2]];
+
+  addV (u, v) => [u[0] + v[0], u[1] + v[1], u[2] + v[2]];
   
   List<List<List<double>>> a = new List(5);
   
   for(var i = 0; i < 5; i++) {
-    var x = scaleV(u2, i * s/4);
-    x = addV(x, v);
+    var x = scaleV(leftEdge, i * s/4);
+    x = addV(x, startingPoint);
     a[i] = new List();
     a[i].add(x);
     
     for(var j = 1; j < 5 - i; j++) {
-      var y = scaleV(u1, j * s/4);
+      var y = scaleV(botEdge, j * s/4);
       a[i].add( addV(x, y) );
     }
   }
@@ -310,7 +247,7 @@ List<double> gridifyTriangle(List<double> leftEdge, List<double> botEdge, double
   }
   return c;
 }
-*/
+
 
 
 void icosaBufferSetup(RenderingContext gl) {
