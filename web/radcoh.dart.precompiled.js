@@ -407,6 +407,17 @@ JSNumber: {"": "num/Interceptor;",
       throw H.wrapException(new P.ArgumentError(other));
     return receiver * other;
   },
+  $mod: function(receiver, other) {
+    var result = receiver % other;
+    if (result === 0)
+      return 0;
+    if (result > 0)
+      return result;
+    if (other < 0)
+      return result - other;
+    else
+      return result + other;
+  },
   $tdiv: function(receiver, other) {
     if ((receiver | 0) === receiver && (other | 0) === other && 0 !== other && -1 !== other)
       return receiver / other | 0;
@@ -5702,83 +5713,98 @@ gridBufferSetup: function(gl) {
 },
 
 icosaBufferSetup: function(gl) {
-  var t1, a, t2, phi, $top, v1, v2, v3, v4, v5, bot, w1, w2, w3, w4, w5, pbuf, ibuf, cbuf, colors, white, black, new_colors;
+  var t1, a, t2, phi, $top, v, i, t3, bot, w, pbuf, ibuf, cbuf, colors, white, black, new_colors;
   t1 = new E.icosaBufferSetup_scaleV();
   a = P.List_List(null, null);
   t2 = new E.icosaBufferSetup_addVtoa(a);
   phi = (1 + Math.sqrt(5)) / 2;
   $top = [0, 1, phi];
-  v1 = [0, -1, phi];
-  v2 = [-phi, 0, 1];
-  v3 = [-1, phi, 0];
-  v4 = [1, phi, 0];
-  v5 = [phi, 0, 1];
-  t2.call$1($top);
-  t2.call$1(v1);
-  t2.call$1(v2);
-  t2.call$1($top);
-  t2.call$1(v2);
-  t2.call$1(v3);
-  t2.call$1($top);
-  t2.call$1(v3);
-  t2.call$1(v4);
-  t2.call$1($top);
-  t2.call$1(v4);
-  t2.call$1(v5);
-  t2.call$1($top);
-  t2.call$1(v5);
-  t2.call$1(v1);
+  v = [[0, -1, phi], [-phi, 0, 1], [-1, phi, 0], [1, phi, 0], [phi, 0, 1]];
+  for (i = 0; i < 5;) {
+    t2.call$1($top);
+    t2.call$1(v[i]);
+    ++i;
+    t3 = C.JSInt_methods.$mod(i, 5);
+    if (t3 < 0 || t3 >= 5)
+      throw H.ioore(v, t3);
+    t2.call$1(v[t3]);
+  }
+  P.print(true);
   bot = t1.call$2($top, -1);
-  w1 = t1.call$2(v1, -1);
-  w2 = t1.call$2(v2, -1);
-  w3 = t1.call$2(v3, -1);
-  w4 = t1.call$2(v4, -1);
-  w5 = t1.call$2(v5, -1);
-  t2.call$1(bot);
-  t2.call$1(w1);
-  t2.call$1(w2);
-  t2.call$1(bot);
-  t2.call$1(w2);
-  t2.call$1(w3);
-  t2.call$1(bot);
-  t2.call$1(w3);
-  t2.call$1(w4);
-  t2.call$1(bot);
-  t2.call$1(w4);
-  t2.call$1(w5);
-  t2.call$1(bot);
-  t2.call$1(w5);
-  t2.call$1(w1);
-  t2.call$1(w3);
-  t2.call$1(v1);
-  t2.call$1(w4);
-  t2.call$1(v1);
-  t2.call$1(w4);
-  t2.call$1(v2);
-  t2.call$1(w4);
-  t2.call$1(v2);
-  t2.call$1(w5);
-  t2.call$1(v2);
-  t2.call$1(w5);
-  t2.call$1(v3);
-  t2.call$1(w5);
-  t2.call$1(v3);
-  t2.call$1(w1);
-  t2.call$1(v3);
-  t2.call$1(w1);
-  t2.call$1(v4);
-  t2.call$1(w1);
-  t2.call$1(v4);
-  t2.call$1(w2);
-  t2.call$1(v4);
-  t2.call$1(w2);
-  t2.call$1(v5);
-  t2.call$1(w2);
-  t2.call$1(v5);
-  t2.call$1(w3);
-  t2.call$1(v5);
-  t2.call$1(w3);
-  t2.call$1(v1);
+  w = P.List_List(null, null);
+  for (i = 0; i < 5; ++i)
+    w.push(t1.call$2(v[i], -1));
+  for (i = 0; i < 5;) {
+    t2.call$1(bot);
+    if (i >= w.length)
+      throw H.ioore(w, i);
+    t2.call$1(w[i]);
+    ++i;
+    t1 = C.JSInt_methods.$mod(i, 5);
+    if (t1 < 0 || t1 >= w.length)
+      throw H.ioore(w, t1);
+    t2.call$1(w[t1]);
+  }
+  if (2 >= w.length)
+    throw H.ioore(w, 2);
+  t2.call$1(w[2]);
+  t2.call$1(v[0]);
+  if (3 >= w.length)
+    throw H.ioore(w, 3);
+  t2.call$1(w[3]);
+  t2.call$1(v[0]);
+  if (3 >= w.length)
+    throw H.ioore(w, 3);
+  t2.call$1(w[3]);
+  t2.call$1(v[1]);
+  if (3 >= w.length)
+    throw H.ioore(w, 3);
+  t2.call$1(w[3]);
+  t2.call$1(v[1]);
+  if (4 >= w.length)
+    throw H.ioore(w, 4);
+  t2.call$1(w[4]);
+  t2.call$1(v[1]);
+  if (4 >= w.length)
+    throw H.ioore(w, 4);
+  t2.call$1(w[4]);
+  t2.call$1(v[2]);
+  if (4 >= w.length)
+    throw H.ioore(w, 4);
+  t2.call$1(w[4]);
+  t2.call$1(v[2]);
+  if (0 >= w.length)
+    throw H.ioore(w, 0);
+  t2.call$1(w[0]);
+  t2.call$1(v[2]);
+  if (0 >= w.length)
+    throw H.ioore(w, 0);
+  t2.call$1(w[0]);
+  t2.call$1(v[3]);
+  if (0 >= w.length)
+    throw H.ioore(w, 0);
+  t2.call$1(w[0]);
+  t2.call$1(v[3]);
+  if (1 >= w.length)
+    throw H.ioore(w, 1);
+  t2.call$1(w[1]);
+  t2.call$1(v[3]);
+  if (1 >= w.length)
+    throw H.ioore(w, 1);
+  t2.call$1(w[1]);
+  t2.call$1(v[4]);
+  if (1 >= w.length)
+    throw H.ioore(w, 1);
+  t2.call$1(w[1]);
+  t2.call$1(v[4]);
+  if (2 >= w.length)
+    throw H.ioore(w, 2);
+  t2.call$1(w[2]);
+  t2.call$1(v[4]);
+  if (2 >= w.length)
+    throw H.ioore(w, 2);
+  t2.call$1(w[2]);
+  t2.call$1(v[0]);
   pbuf = gl.createBuffer();
   ibuf = gl.createBuffer();
   cbuf = gl.createBuffer();
