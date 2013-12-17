@@ -361,46 +361,25 @@ void icosaBufferSetup(RenderingContext gl) {
   
   // w3, v1, w4, v2, w5, v3, w1, v4, w2, v5, w3
   
-  addVtoa(w[2]);
-  addVtoa(v[0]);
-  addVtoa(w[3]);
- 
-  addVtoa(v[0]);
-  addVtoa(w[3]);
-  addVtoa(v[1]);
-
-  addVtoa(w[3]);
-  addVtoa(v[1]);
-  addVtoa(w[4]);
-
-  addVtoa(v[1]);
-  addVtoa(w[4]);
-  addVtoa(v[2]);
+  var z = new List();
+  z.add(w[2]);
+  z.add(v[0]);
+  z.add(w[3]);
+  z.add(v[1]);
+  z.add(w[4]);
+  z.add(v[2]);
+  z.add(w[0]);
+  z.add(v[3]);
+  z.add(w[1]);
+  z.add(v[4]);
+  z.add(w[2]);
+  z.add(v[0]);
   
-  addVtoa(w[4]);
-  addVtoa(v[2]);
-  addVtoa(w[0]);
-  
-  addVtoa(v[2]);
-  addVtoa(w[0]);
-  addVtoa(v[3]);
-
-  addVtoa(w[0]);
-  addVtoa(v[3]);
-  addVtoa(w[1]);
-
-  addVtoa(v[3]);
-  addVtoa(w[1]);
-  addVtoa(v[4]);
-  
-  addVtoa(w[1]);
-  addVtoa(v[4]);
-  addVtoa(w[2]);
-  
-  addVtoa(v[4]);
-  addVtoa(w[2]);
-  addVtoa(v[0]);
-  
+  for (var i = 0; i < 10; i++) {
+    addVtoa(z[i]);
+    addVtoa(z[i+1]);
+    addVtoa(z[i+2]);
+  }
   
   Buffer pbuf, ibuf, cbuf;
 
