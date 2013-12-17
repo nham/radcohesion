@@ -298,15 +298,6 @@ JSArray: {"": "List/Interceptor;",
       throw H.ioore(receiver, index);
     return receiver[index];
   },
-  sublist$2: function(receiver, start, end) {
-    if (start < 0 || start > receiver.length)
-      throw H.wrapException(P.RangeError$range(start, 0, receiver.length));
-    if (end < start || end > receiver.length)
-      throw H.wrapException(P.RangeError$range(end, start, receiver.length));
-    if (start === end)
-      return [];
-    return receiver.slice(start, end);
-  },
   toString$0: function(receiver) {
     return H.IterableMixinWorkaround_toStringIterable(receiver, "[", "]");
   },
@@ -5585,6 +5576,7 @@ main: function() {
 
   p = E.programSetup(t1.gl_0);
   t1.gl_0.useProgram(p.program);
+  E.genGridPointList();
   E.gridBufferSetup(t1.gl_0);
   E.icosaBufferSetup(t1.gl_0);
   t1.lastTime_1 = 0;
@@ -5608,50 +5600,68 @@ programSetup: function(gl) {
 },
 
 genGridPointList: function() {
-  var t1, t2, x, y, u1, t3, u2, u3, v, a, i, rm, tm;
+  var t1, t2, x, y, u1, u2, v, a, i, t3, j, b, i0, c, off, line, z;
   t1 = new E.genGridPointList_scaleV();
   t2 = new E.genGridPointList_addV();
   x = Math.cos(1.0471975511965976);
   y = Math.sin(1.0471975511965976);
   u1 = [1, 0, 0];
-  t3 = -x;
-  u2 = [t3, y, 0];
-  u3 = [t3, -y, 0];
+  u2 = [x, y, 0];
   v = [-1.6, -1.6 / Math.tan(1.0471975511965976), 0];
-  a = P.List_List(null, null);
+  a = P.List_List(5, null);
   for (i = 0; i < 5; ++i) {
-    x = t2.call$2(t1.call$2(u1, i * 0.8), v);
-    t3 = J.getInterceptor$asx(x);
-    a.push(t3.$index(x, 0));
-    a.push(t3.$index(x, 1));
-    a.push(t3.$index(x, 2));
+    x = t2.call$2(t1.call$2(u2, i * 3.2 / 4), v);
+    a[i] = P.List_List(null, null);
+    a[i].push(x);
+    for (t3 = 5 - i, j = 1; j < t3; ++j) {
+      y = t1.call$2(u1, j * 3.2 / 4);
+      a[i].push(t2.call$2(x, y));
+    }
   }
-  rm = C.JSArray_methods.sublist$2(a, 12, 15);
-  for (i = 1; i < 5; ++i) {
-    x = t2.call$2(t1.call$2(u2, i * 0.8), rm);
-    t3 = J.getInterceptor$asx(x);
-    a.push(t3.$index(x, 0));
-    a.push(t3.$index(x, 1));
-    a.push(t3.$index(x, 2));
+  b = P.List_List(null, null);
+  for (i = 0; i < 4; i = i0) {
+    for (t1 = 4 - i, i0 = i + 1, j = 0; t2 = a[i], j < t1; ++j) {
+      if (j >= t2.length)
+        throw H.ioore(t2, j);
+      b.push(t2[j]);
+      t2 = a[i0];
+      if (j >= t2.length)
+        throw H.ioore(t2, j);
+      b.push(t2[j]);
+    }
+    if (t1 >= t2.length)
+      throw H.ioore(t2, t1);
+    b.push(t2[t1]);
   }
-  tm = C.JSArray_methods.sublist$2(a, 24, 27);
-  for (i = 1; i < 4; ++i) {
-    x = t2.call$2(t1.call$2(u3, i * 0.8), tm);
-    t3 = J.getInterceptor$asx(x);
-    a.push(t3.$index(x, 0));
-    a.push(t3.$index(x, 1));
-    a.push(t3.$index(x, 2));
+  P.print("b length = " + b.length);
+  c = P.List_List(null, null);
+  t1 = new E.genGridPointList_addVtoc(c);
+  for (i = 7, off = 0; i >= 1; off += i + 2, i -= 2) {
+    line = "i = " + i + ", off = " + off;
+    H.printToConsole(line);
+    for (j = 0; j < i; ++j) {
+      z = off + j;
+      if (z < 0 || z >= b.length)
+        throw H.ioore(b, z);
+      t1.call$1(b[z]);
+      t2 = z + 1;
+      if (t2 >= b.length)
+        throw H.ioore(b, t2);
+      t1.call$1(b[t2]);
+      t2 = z + 2;
+      if (t2 >= b.length)
+        throw H.ioore(b, t2);
+      t1.call$1(b[t2]);
+    }
   }
-  return a;
+  return c;
 },
 
 gridBufferSetup: function(gl) {
-  var pbuf, ibuf, cbuf, a, t1, colors, i;
+  var pbuf, ibuf, cbuf, a, t1, purp, blue, green, orange, salmon, colors;
   pbuf = gl.createBuffer();
   ibuf = gl.createBuffer();
   cbuf = gl.createBuffer();
-  $.triGridTriIndBuf = gl.createBuffer();
-  $.triGridTriColorBuf = gl.createBuffer();
   $.triGrid = new E.Figure(pbuf, ibuf, cbuf, [0, 1.8, -9], 0);
   a = E.genGridPointList();
   gl.bindBuffer(34962, pbuf);
@@ -5659,36 +5669,44 @@ gridBufferSetup: function(gl) {
   t1.$dartCachedLength = t1.length;
   gl.bufferData(34962, t1, 35044);
   gl.bindBuffer(34963, ibuf);
-  t1 = new Uint16Array([0, 4, 4, 8, 8, 0, 1, 7, 1, 11, 2, 6, 2, 10, 3, 5, 3, 9, 5, 11, 6, 10, 7, 9]);
+  t1 = new Uint16Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47]);
   t1.$dartCachedLength = t1.length;
   gl.bufferData(34963, t1, 35044);
-  colors = [1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1];
-  P.print("lens: " + a.length + ", " + colors.length);
+  t1 = new E.gridBufferSetup_scaleV();
+  purp = t1.call$2([192, 62, 255, 255], 0.00392156862745098);
+  blue = t1.call$2([48, 186, 232, 255], 0.00392156862745098);
+  green = t1.call$2([121, 255, 65, 255], 0.00392156862745098);
+  orange = t1.call$2([232, 171, 48, 255], 0.00392156862745098);
+  salmon = t1.call$2([255, 71, 117, 255], 0.00392156862745098);
+  colors = P.List_List(null, null);
+  t1 = new E.gridBufferSetup_add3(new E.gridBufferSetup_addColor(colors));
+  t1.call$1(purp);
+  t1.call$1(blue);
+  t1.call$1(green);
+  t1.call$1(orange);
+  t1.call$1(salmon);
+  t1.call$1(purp);
+  t1.call$1(blue);
+  t1.call$1(green);
+  t1.call$1(orange);
+  t1.call$1(salmon);
+  t1.call$1(purp);
+  t1.call$1(blue);
+  t1.call$1(green);
+  t1.call$1(orange);
+  t1.call$1(salmon);
+  t1.call$1(purp);
+  t1.call$1(blue);
+  t1.call$1(green);
+  t1.call$1(orange);
   gl.bindBuffer(34962, cbuf);
   t1 = new Float32Array(colors);
   t1.$dartCachedLength = t1.length;
   gl.bufferData(34962, t1, 35044);
-  colors = [];
-  for (i = 0; i < 12; ++i) {
-    colors.push(0.9);
-    colors.push(0.5);
-    colors.push(0.9);
-    colors.push(0.8);
-  }
-  P.print(colors);
-  P.print("made if after yaaaa");
-  gl.bindBuffer(34962, $.triGridTriColorBuf);
-  t1 = new Float32Array(colors);
-  t1.$dartCachedLength = t1.length;
-  gl.bufferData(34962, t1, 35044);
-  gl.bindBuffer(34963, $.triGridTriIndBuf);
-  t1 = new Uint16Array([0, 4, 8]);
-  t1.$dartCachedLength = t1.length;
-  gl.bufferData(34963, t1, 35044);
 },
 
 icosaBufferSetup: function(gl) {
-  var t1, a, t2, phi, $top, v1, v2, v3, v4, v5, bot, w1, w2, w3, w4, w5, pbuf, ibuf, cbuf, new_colors;
+  var t1, a, t2, phi, $top, v1, v2, v3, v4, v5, bot, w1, w2, w3, w4, w5, pbuf, ibuf, cbuf, colors, white, black, new_colors;
   t1 = new E.icosaBufferSetup_scaleV();
   a = P.List_List(null, null);
   t2 = new E.icosaBufferSetup_addVtoa(a);
@@ -5765,7 +5783,6 @@ icosaBufferSetup: function(gl) {
   t2.call$1(v5);
   t2.call$1(w3);
   t2.call$1(v1);
-  P.print(a);
   pbuf = gl.createBuffer();
   ibuf = gl.createBuffer();
   cbuf = gl.createBuffer();
@@ -5778,10 +5795,33 @@ icosaBufferSetup: function(gl) {
   t1 = new Uint16Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]);
   t1.$dartCachedLength = t1.length;
   gl.bufferData(34963, t1, 35044);
-  t1 = new H.MappedListIterable([192, 62, 255, 255, 192, 62, 255, 255, 192, 62, 255, 255, 48, 186, 232, 255, 48, 186, 232, 255, 48, 186, 232, 255, 121, 255, 65, 255, 121, 255, 65, 255, 121, 255, 65, 255, 232, 171, 48, 255, 232, 171, 48, 255, 232, 171, 48, 255, 255, 71, 117, 255, 255, 71, 117, 255, 255, 71, 117, 255, 192, 62, 255, 165.75, 192, 62, 255, 165.75, 192, 62, 255, 165.75, 48, 186, 232, 165.75, 48, 186, 232, 165.75, 48, 186, 232, 165.75, 121, 255, 65, 165.75, 121, 255, 65, 165.75, 121, 255, 65, 165.75, 232, 171, 48, 165.75, 232, 171, 48, 165.75, 232, 171, 48, 165.75, 255, 71, 117, 165.75, 255, 71, 117, 165.75, 255, 71, 117, 165.75, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255], new E.icosaBufferSetup_closure());
+  colors = P.List_List(null, null);
+  t1 = new E.icosaBufferSetup_add3(new E.icosaBufferSetup_addColor(colors));
+  white = [255, 255, 255, 255];
+  black = [0, 0, 0, 255];
+  t1.call$1([192, 62, 255, 255]);
+  t1.call$1([48, 186, 232, 255]);
+  t1.call$1([121, 255, 65, 255]);
+  t1.call$1([232, 171, 48, 255]);
+  t1.call$1([255, 71, 117, 255]);
+  t1.call$1([192, 62, 255, 165.75]);
+  t1.call$1([48, 186, 232, 165.75]);
+  t1.call$1([121, 255, 65, 165.75]);
+  t1.call$1([232, 171, 48, 165.75]);
+  t1.call$1([255, 71, 117, 165.75]);
+  t1.call$1(white);
+  t1.call$1(black);
+  t1.call$1(white);
+  t1.call$1(black);
+  t1.call$1(white);
+  t1.call$1(black);
+  t1.call$1(white);
+  t1.call$1(black);
+  t1.call$1(white);
+  t1.call$1(black);
+  t1 = new H.MappedListIterable(colors, new E.icosaBufferSetup_closure());
   H.setRuntimeTypeInfo(t1, [null, null]);
   new_colors = P.List_List$from(t1, true, null);
-  P.print(new_colors);
   gl.bindBuffer(34962, cbuf);
   t1 = new Float32Array(new_colors);
   t1.$dartCachedLength = t1.length;
@@ -5809,7 +5849,7 @@ drawScene: function(gl, prog, aspect) {
   t1 = prog.uniforms;
   gl.uniformMatrix4fv(t1.$index(t1, "uPMatrix"), false, $.pMatrix.buf);
   gl.uniformMatrix4fv(t1.$index(t1, "uMVMatrix"), false, $.grid_mvMatrix.buf);
-  gl.drawElements(1, 24, 5123, 0);
+  gl.drawElements(4, 48, 5123, 0);
   t3 = $.get$mvStack();
   if (0 >= t3.length)
     throw H.ioore(t3, 0);
@@ -6215,6 +6255,53 @@ genGridPointList_addV: {"": "Closure;",
   $is_args2: true
 },
 
+genGridPointList_addVtoc: {"": "Closure;c_0",
+  call$1: function(v) {
+    var t1, t2;
+    t1 = this.c_0;
+    t2 = J.getInterceptor$asx(v);
+    t1.push(t2.$index(v, 0));
+    t1.push(t2.$index(v, 1));
+    t1.push(t2.$index(v, 2));
+    return t1;
+  },
+  $is_args1: true
+},
+
+gridBufferSetup_scaleV: {"": "Closure;",
+  call$2: function(xs, c) {
+    var t1, t2;
+    t1 = J.getInterceptor$asx(xs);
+    t2 = J.getInterceptor$n(c);
+    return [t2.$mul(c, t1.$index(xs, 0)), t2.$mul(c, t1.$index(xs, 1)), t2.$mul(c, t1.$index(xs, 2)), t2.$mul(c, t1.$index(xs, 3))];
+  },
+  $is_args2: true
+},
+
+gridBufferSetup_addColor: {"": "Closure;colors_0",
+  call$1: function(v) {
+    var t1, t2;
+    t1 = this.colors_0;
+    t2 = J.getInterceptor$asx(v);
+    t1.push(t2.$index(v, 0));
+    t1.push(t2.$index(v, 1));
+    t1.push(t2.$index(v, 2));
+    t1.push(t2.$index(v, 3));
+    return t1;
+  },
+  $is_args1: true
+},
+
+gridBufferSetup_add3: {"": "Closure;addColor_1",
+  call$1: function(v) {
+    var t1 = this.addColor_1;
+    t1.call$1(v);
+    t1.call$1(v);
+    t1.call$1(v);
+  },
+  $is_args1: true
+},
+
 icosaBufferSetup_scaleV: {"": "Closure;",
   call$2: function(xs, c) {
     var t1, t2;
@@ -6244,6 +6331,30 @@ icosaBufferSetup_addVtoa: {"": "Closure;a_0",
     t1.push(t2.$index(v, 1));
     t1.push(t2.$index(v, 2));
     return t1;
+  },
+  $is_args1: true
+},
+
+icosaBufferSetup_addColor: {"": "Closure;colors_1",
+  call$1: function(v) {
+    var t1, t2;
+    t1 = this.colors_1;
+    t2 = J.getInterceptor$asx(v);
+    t1.push(t2.$index(v, 0));
+    t1.push(t2.$index(v, 1));
+    t1.push(t2.$index(v, 2));
+    t1.push(t2.$index(v, 3));
+    return t1;
+  },
+  $is_args1: true
+},
+
+icosaBufferSetup_add3: {"": "Closure;addColor_2",
+  call$1: function(v) {
+    var t1 = this.addColor_2;
+    t1.call$1(v);
+    t1.call$1(v);
+    t1.call$1(v);
   },
   $is_args1: true
 },
@@ -6543,8 +6654,6 @@ $.Device__isOpera = null;
 $.Device__isWebKit = null;
 $.triGrid = null;
 $.icosa = null;
-$.triGridTriIndBuf = null;
-$.triGridTriColorBuf = null;
 $.pMatrix = null;
 $.grid_mvMatrix = null;
 $.tetra_mvMatrix = null;
