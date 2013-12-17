@@ -169,16 +169,14 @@ List<double> genGridPointList() {
     b..add(a[i][4-i]);
   }
   
-  print("b length = ${b.length}");
-  
   List<double> c = new List();
   addVtoc (v) => c..add(v[0])..add(v[1])..add(v[2]);
-  for(var i = 7, off = 0; i >= 1; off = i+2, i -= 2) {
-    print("i = $i, off = $off");
+  for(var i = 7, off = 0; i >= 1; off += i+2, i -= 2) {
     for(var j = 0; j < i; j++) {
-      addVtoc(b[j]);
-      addVtoc(b[j+1]);
-      addVtoc(b[j+2]);
+      var z = off + j;
+      addVtoc(b[z]);
+      addVtoc(b[z+1]);
+      addVtoc(b[z+2]);
     }
   }
   return c;
@@ -200,11 +198,8 @@ void gridBufferSetup(RenderingContext gl) {
   ibuf = gl.createBuffer();
   cbuf = gl.createBuffer();
   triGrid = new Figure(pbuf, ibuf, cbuf, [0.0, 1.8, -9.0], 0.0);
-
   
   var a = genGridPointList();  
-  
-  print(a.length);
   
   gl.bindBuffer(ARRAY_BUFFER, pbuf);
   gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(a), STATIC_DRAW);
@@ -213,18 +208,33 @@ void gridBufferSetup(RenderingContext gl) {
   var gridPointsIndices = [ 0,  1,  2,  3,  4,  5,  6,  7,  8,
                             9, 10, 11, 12, 13, 14, 15, 16, 17,
                            18, 19, 20,
-                           
-                           21, 22, 23, 24, 25, 26, 27, 28,
-                           29, 30, 31, 32, 33, 34];
+
+                           21, 22, 23, 24, 25, 26, 27, 28, 29,
+                           30, 31, 32, 33, 34, 35,
+ 
+                           36, 37, 38, 39, 40, 41, 42, 43, 44,
+
+                           45, 46, 47];
 
   
   gl.bindBuffer(ELEMENT_ARRAY_BUFFER, ibuf);
   gl.bufferDataTyped(ELEMENT_ARRAY_BUFFER, 
       new Uint16List.fromList(gridPointsIndices), STATIC_DRAW);
   
-  var r = [1.0, 0.0, 0.0, 1.0],
-      g = [0.0, 1.0, 0.0, 1.0],
-      b = [0.0, 0.0, 1.0, 1.0];
+  scaleV (xs, c) => [c * xs[0], c * xs[1], c * xs[2], c * xs[3]];
+  
+  var purp   = [192.0,  62.0,  255.0,  255.0],
+      blue   = [48.0,  186.0,  232.0,  255.0],
+      green  = [121.0,  255.0,  65.0,  255.0],
+      orange = [232.0,  171.0,  48.0,  255.0],
+      salmon = [255.0,  71.0,  117.0,  255.0];
+  
+  
+  purp = scaleV(purp, 1/255.0);
+  blue = scaleV(blue, 1/255.0);
+  green = scaleV(green, 1/255.0);
+  orange = scaleV(orange, 1/255.0);
+  salmon = scaleV(salmon, 1/255.0);
   
   var colors = new List();
   addColor(v) => colors..add(v[0])..add(v[1])..add(v[2])..add(v[3]);
@@ -235,20 +245,29 @@ void gridBufferSetup(RenderingContext gl) {
     addColor(v);
   }
   
-  add3(r);
-  add3(g);
-  add3(b);
-  add3(r);
-  add3(g);
-  add3(b);
-  add3(r);
-  add3(g);
-  add3(b);
-  add3(r);
-  add3(g);
-  add3(b);
+  add3(purp);
+  add3(blue);
+  add3(green);
+  add3(orange);
+  add3(salmon);
   
-  print("lens: ${a.length}, ${colors.length}");
+  add3(purp);
+  add3(blue);
+  add3(green);
+  add3(orange);
+  add3(salmon);
+  
+  add3(purp);
+  add3(blue);
+  add3(green);
+  add3(orange);
+  add3(salmon);
+  
+  add3(purp);
+  add3(blue);
+  add3(green);
+  add3(orange);
+  
   gl.bindBuffer(ARRAY_BUFFER, cbuf);
   gl.bufferData(ARRAY_BUFFER, new Float32List.fromList(colors), STATIC_DRAW);
 
@@ -444,7 +463,6 @@ void icosaBufferSetup(RenderingContext gl) {
   add3(black);
   
   var new_colors = new List.from(colors.map((x) => x / 255.0));
-  print(new_colors);
   
   gl.bindBuffer(ARRAY_BUFFER, cbuf);
   gl.bufferData(ARRAY_BUFFER, new Float32List.fromList(new_colors), STATIC_DRAW);
@@ -505,7 +523,7 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   
   gl.uniformMatrix4fv(prog.uniforms['uPMatrix'], false, pMatrix.buf);
   gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, grid_mvMatrix.buf);
-  gl.drawElements(TRIANGLES, 35, UNSIGNED_SHORT, 0);
+  gl.drawElements(TRIANGLES, 48, UNSIGNED_SHORT, 0);
   
   grid_mvPopMatrix();
   
