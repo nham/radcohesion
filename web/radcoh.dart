@@ -287,12 +287,25 @@ void icosaBufferSetup(RenderingContext gl) {
   var bot = scaleV(top, -1.0);
   //List<List<double>> w = v.map((x) => scaleV(x, -1.0));
   var w = v.map((x) => scaleV(x, -1.0)).toList();
-
+  
+  var wdiff_top = new List();
+  var wdiff_prev = new List();
+  for(var i = 0; i < w.length; i++) {
+    wdiff_top.add( addV(bot, scaleV(w[i], -1.0)) );
+    wdiff_prev.add( addV(w[(i - 1) % 5], scaleV(w[i], -1.0)) );
+  }
+  
+  for (var i = 0; i < 5; i++) {
+    a.addAll( gridifyTriangle(w[i], wdiff_top[i], wdiff_prev[i], 1.0) );
+  }
+  
+  /*
   for(var i = 0; i < 5; i++) {
     addVtoa(bot);
     addVtoa(w[i]);
     addVtoa(w[(i+1) % 5]);
   }
+  */
 
 
   var z = new List();
@@ -320,14 +333,14 @@ void icosaBufferSetup(RenderingContext gl) {
   pbuf = gl.createBuffer();
   ibuf = gl.createBuffer();
   cbuf = gl.createBuffer();
-  icosa = new Figure(pbuf, ibuf, cbuf, [0.0, -3.0, -13.0], 0.0);
+  icosa = new Figure(pbuf, ibuf, cbuf, [0.0, -2.0, -11.0], 0.0);
 
   
   gl.bindBuffer(ARRAY_BUFFER, pbuf);
   gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(a), STATIC_DRAW);
   
   var gridPointsIndices = [];
-  for(int i = 0; i < 285; i++) {
+  for(int i = 0; i < 510; i++) {
     gridPointsIndices.add(i);
   }
   
@@ -365,11 +378,13 @@ void icosaBufferSetup(RenderingContext gl) {
     add3(salmon);
   }
   
-  add3(purp_l);
-  add3(blue_l);
-  add3(green_l);
-  add3(orange_l);
-  add3(salmon_l);
+  for(var i = 0; i < 16; i++) {
+    add3(purp_l);
+    add3(blue_l);
+    add3(green_l);
+    add3(orange_l);
+    add3(salmon_l);
+  }
   
   add3(white);
   add3(black);
@@ -467,7 +482,7 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   
   gl.uniformMatrix4fv(prog.uniforms['uPMatrix'], false, pMatrix.buf);
   gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, icosa_mvMatrix.buf);
-  gl.drawElements(TRIANGLES, 285, UNSIGNED_SHORT, 0);
+  gl.drawElements(TRIANGLES, 510, UNSIGNED_SHORT, 0);
 
   
 // Finally, reset the matrix back to what it was before we moved around.
