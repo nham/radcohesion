@@ -332,7 +332,7 @@ void icosaBufferSetup(RenderingContext gl) {
   pbuf = gl.createBuffer();
   ibuf = gl.createBuffer();
   cbuf = gl.createBuffer();
-  icosa = new Figure(pbuf, ibuf, cbuf, [0.0, -2.0, -11.0], 0.0);
+  icosa = new Figure(pbuf, ibuf, cbuf, [0.0, 2.0, -10.0], 0.0);
 
   
   gl.bindBuffer(ARRAY_BUFFER, pbuf);
@@ -436,6 +436,7 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   // something something field of view is 45 degrees. the last 2 are something to do with depth.
   pMatrix = Matrix4.perspective(45.0, aspect, 0.1, 100.0);
   
+  /*
   // First stash the current model view matrix before we start moving around.
   grid_mvPushMatrix();
 
@@ -458,6 +459,7 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   gl.drawElements(TRIANGLES, 48, UNSIGNED_SHORT, 0);
   
   grid_mvPopMatrix();
+  */
   
   
   // and now we icosa
