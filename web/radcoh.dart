@@ -270,7 +270,7 @@ void gridBufferSetup(RenderingContext gl) {
   gl.bufferData(ARRAY_BUFFER, new Float32List.fromList(colors), STATIC_DRAW);
 
 }
-
+/*
 List<double> gridifyTriangle(List<double> leftEdge, List<double> botEdge, double s) {
   scaleV (xs, c) => [c * xs[0], c * xs[1], c * xs[2]];
   
@@ -310,6 +310,7 @@ List<double> gridifyTriangle(List<double> leftEdge, List<double> botEdge, double
   }
   return c;
 }
+*/
 
 
 void icosaBufferSetup(RenderingContext gl) {

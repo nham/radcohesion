@@ -316,6 +316,13 @@ JSArray: {"": "List/Interceptor;",
   get$length: function(receiver) {
     return receiver.length;
   },
+  set$length: function(receiver, newLength) {
+    if (newLength < 0)
+      throw H.wrapException(P.RangeError$value(newLength));
+    if (!!receiver.fixed$length)
+      H.throwExpression(P.UnsupportedError$("set length"));
+    receiver.length = newLength;
+  },
   $index: function(receiver, index) {
     if (typeof index !== "number" || Math.floor(index) !== index)
       throw H.wrapException(new P.ArgumentError(index));
@@ -349,7 +356,7 @@ JSMutableArray: {"": "JSArray;", $isJSMutableArray: true,
 
 JSFixedArray: {"": "JSMutableArray;"},
 
-JSExtendableArray: {"": "JSMutableArray;"},
+JSExtendableArray: {"": "JSMutableArray;", $isJSExtendableArray: true},
 
 JSNumber: {"": "num/Interceptor;",
   get$isNegative: function(receiver) {
@@ -2290,6 +2297,27 @@ ListIterable: {"": "IterableBase;",
       if ($length !== this.get$length(this))
         throw H.wrapException(P.ConcurrentModificationError$(this));
     }
+  },
+  toList$1$growable: function(_, growable) {
+    var result, i, t1;
+    if (growable) {
+      result = P.List_List(null, H.getRuntimeTypeArgument(this, "ListIterable", 0));
+      H.setRuntimeTypeInfo(result, [H.getRuntimeTypeArgument(this, "ListIterable", 0)]);
+      C.JSArray_methods.set$length(result, this.get$length(this));
+    } else {
+      result = P.List_List(this.get$length(this), H.getRuntimeTypeArgument(this, "ListIterable", 0));
+      H.setRuntimeTypeInfo(result, [H.getRuntimeTypeArgument(this, "ListIterable", 0)]);
+    }
+    for (i = 0; i < this.get$length(this); ++i) {
+      t1 = this.elementAt$1(this, i);
+      if (i >= result.length)
+        throw H.ioore(result, i);
+      result[i] = t1;
+    }
+    return result;
+  },
+  toList$0: function($receiver) {
+    return this.toList$1$growable($receiver, true);
   },
   $asIterableBase: null,
   $isEfficientLength: true
@@ -5713,98 +5741,79 @@ gridBufferSetup: function(gl) {
 },
 
 icosaBufferSetup: function(gl) {
-  var t1, a, t2, phi, $top, v, i, t3, bot, w, pbuf, ibuf, cbuf, colors, white, black, new_colors;
+  var t1, t2, a, t3, phi, $top, v, vdiff_top, i, bot, w, z, i0, pbuf, ibuf, cbuf, colors, white, black, new_colors;
   t1 = new E.icosaBufferSetup_scaleV();
+  t2 = new E.icosaBufferSetup_addV();
   a = P.List_List(null, null);
-  t2 = new E.icosaBufferSetup_addVtoa(a);
+  t3 = new E.icosaBufferSetup_addVtoa(a);
   phi = (1 + Math.sqrt(5)) / 2;
   $top = [0, 1, phi];
   v = [[0, -1, phi], [-phi, 0, 1], [-1, phi, 0], [1, phi, 0], [phi, 0, 1]];
-  for (i = 0; i < 5;) {
-    t2.call$1($top);
-    t2.call$1(v[i]);
-    ++i;
-    t3 = C.JSInt_methods.$mod(i, 5);
-    if (t3 < 0 || t3 >= 5)
-      throw H.ioore(v, t3);
-    t2.call$1(v[t3]);
-  }
-  P.print(true);
-  bot = t1.call$2($top, -1);
-  w = P.List_List(null, null);
+  vdiff_top = P.List_List(null, null);
   for (i = 0; i < 5; ++i)
-    w.push(t1.call$2(v[i], -1));
+    vdiff_top.push(t2.call$2($top, t1.call$2(v[i], -1)));
   for (i = 0; i < 5;) {
-    t2.call$1(bot);
+    t3.call$1($top);
+    t3.call$1(v[i]);
+    ++i;
+    t2 = C.JSInt_methods.$mod(i, 5);
+    if (t2 < 0 || t2 >= 5)
+      throw H.ioore(v, t2);
+    t3.call$1(v[t2]);
+  }
+  bot = t1.call$2($top, -1);
+  t1 = new H.MappedListIterable(v, new E.icosaBufferSetup_closure(t1));
+  H.setRuntimeTypeInfo(t1, [null, null]);
+  w = t1.toList$0(t1);
+  for (i = 0; i < 5;) {
+    t3.call$1(bot);
     if (i >= w.length)
       throw H.ioore(w, i);
-    t2.call$1(w[i]);
+    t3.call$1(w[i]);
     ++i;
     t1 = C.JSInt_methods.$mod(i, 5);
     if (t1 < 0 || t1 >= w.length)
       throw H.ioore(w, t1);
-    t2.call$1(w[t1]);
+    t3.call$1(w[t1]);
   }
+  z = P.List_List(null, null);
   if (2 >= w.length)
     throw H.ioore(w, 2);
-  t2.call$1(w[2]);
-  t2.call$1(v[0]);
+  z.push(w[2]);
+  z.push(v[0]);
   if (3 >= w.length)
     throw H.ioore(w, 3);
-  t2.call$1(w[3]);
-  t2.call$1(v[0]);
-  if (3 >= w.length)
-    throw H.ioore(w, 3);
-  t2.call$1(w[3]);
-  t2.call$1(v[1]);
-  if (3 >= w.length)
-    throw H.ioore(w, 3);
-  t2.call$1(w[3]);
-  t2.call$1(v[1]);
+  z.push(w[3]);
+  z.push(v[1]);
   if (4 >= w.length)
     throw H.ioore(w, 4);
-  t2.call$1(w[4]);
-  t2.call$1(v[1]);
-  if (4 >= w.length)
-    throw H.ioore(w, 4);
-  t2.call$1(w[4]);
-  t2.call$1(v[2]);
-  if (4 >= w.length)
-    throw H.ioore(w, 4);
-  t2.call$1(w[4]);
-  t2.call$1(v[2]);
+  z.push(w[4]);
+  z.push(v[2]);
   if (0 >= w.length)
     throw H.ioore(w, 0);
-  t2.call$1(w[0]);
-  t2.call$1(v[2]);
-  if (0 >= w.length)
-    throw H.ioore(w, 0);
-  t2.call$1(w[0]);
-  t2.call$1(v[3]);
-  if (0 >= w.length)
-    throw H.ioore(w, 0);
-  t2.call$1(w[0]);
-  t2.call$1(v[3]);
+  z.push(w[0]);
+  z.push(v[3]);
   if (1 >= w.length)
     throw H.ioore(w, 1);
-  t2.call$1(w[1]);
-  t2.call$1(v[3]);
-  if (1 >= w.length)
-    throw H.ioore(w, 1);
-  t2.call$1(w[1]);
-  t2.call$1(v[4]);
-  if (1 >= w.length)
-    throw H.ioore(w, 1);
-  t2.call$1(w[1]);
-  t2.call$1(v[4]);
+  z.push(w[1]);
+  z.push(v[4]);
   if (2 >= w.length)
     throw H.ioore(w, 2);
-  t2.call$1(w[2]);
-  t2.call$1(v[4]);
-  if (2 >= w.length)
-    throw H.ioore(w, 2);
-  t2.call$1(w[2]);
-  t2.call$1(v[0]);
+  z.push(w[2]);
+  z.push(v[0]);
+  for (i = 0; i < 10; i = i0) {
+    if (i >= z.length)
+      throw H.ioore(z, i);
+    t3.call$1(z[i]);
+    i0 = i + 1;
+    if (i0 >= z.length)
+      throw H.ioore(z, i0);
+    t3.call$1(z[i0]);
+    t1 = i + 2;
+    if (t1 >= z.length)
+      throw H.ioore(z, t1);
+    t3.call$1(z[t1]);
+  }
   pbuf = gl.createBuffer();
   ibuf = gl.createBuffer();
   cbuf = gl.createBuffer();
@@ -5841,7 +5850,7 @@ icosaBufferSetup: function(gl) {
   t1.call$1(black);
   t1.call$1(white);
   t1.call$1(black);
-  t1 = new H.MappedListIterable(colors, new E.icosaBufferSetup_closure());
+  t1 = new H.MappedListIterable(colors, new E.icosaBufferSetup_closure0());
   H.setRuntimeTypeInfo(t1, [null, null]);
   new_colors = P.List_List$from(t1, true, null);
   gl.bindBuffer(34962, cbuf);
@@ -6357,10 +6366,17 @@ icosaBufferSetup_addVtoa: {"": "Closure;a_0",
   $is_args1: true
 },
 
-icosaBufferSetup_addColor: {"": "Closure;colors_1",
+icosaBufferSetup_closure: {"": "Closure;scaleV_1",
+  call$1: function(x) {
+    return this.scaleV_1.call$2(x, -1);
+  },
+  $is_args1: true
+},
+
+icosaBufferSetup_addColor: {"": "Closure;colors_2",
   call$1: function(v) {
     var t1, t2;
-    t1 = this.colors_1;
+    t1 = this.colors_2;
     t2 = J.getInterceptor$asx(v);
     t1.push(t2.$index(v, 0));
     t1.push(t2.$index(v, 1));
@@ -6371,9 +6387,9 @@ icosaBufferSetup_addColor: {"": "Closure;colors_1",
   $is_args1: true
 },
 
-icosaBufferSetup_add3: {"": "Closure;addColor_2",
+icosaBufferSetup_add3: {"": "Closure;addColor_3",
   call$1: function(v) {
-    var t1 = this.addColor_2;
+    var t1 = this.addColor_3;
     t1.call$1(v);
     t1.call$1(v);
     t1.call$1(v);
@@ -6381,7 +6397,7 @@ icosaBufferSetup_add3: {"": "Closure;addColor_2",
   $is_args1: true
 },
 
-icosaBufferSetup_closure: {"": "Closure;",
+icosaBufferSetup_closure0: {"": "Closure;",
   call$1: function(x) {
     if (typeof x !== "number")
       throw x.$div();
