@@ -350,11 +350,8 @@ void icosaBufferSetup(RenderingContext gl) {
   // invert!
   var bot = scaleV(top, -1.0);
   //List<List<double>> w = v.map((x) => scaleV(x, -1.0));
-  var w = new List();
-  for(var i = 0; i < v.length; i++) {
-    w.add(scaleV(v[i], -1.0));
-  }
-  
+  var w = v.map((x) => scaleV(x, -1.0)).toList();
+
   for(var i = 0; i < 5; i++) {
     addVtoa(bot);
     addVtoa(w[i]);
