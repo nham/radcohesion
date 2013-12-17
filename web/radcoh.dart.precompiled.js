@@ -278,6 +278,16 @@ PlainJavaScriptObject: {"": "JavaScriptObject;"},
 UnknownJavaScriptObject: {"": "JavaScriptObject;"},
 
 JSArray: {"": "List/Interceptor;",
+  add$1: function(receiver, value) {
+    if (!!receiver.fixed$length)
+      H.throwExpression(P.UnsupportedError$("add"));
+    receiver.push(value);
+  },
+  addAll$1: function(receiver, collection) {
+    var t1;
+    for (t1 = new H.ListIterator(collection, collection.length, 0, null); t1.moveNext$0();)
+      this.add$1(receiver, t1._current);
+  },
   forEach$1: function(receiver, f) {
     return H.IterableMixinWorkaround_forEach(receiver, f);
   },
@@ -2198,16 +2208,16 @@ initHooks_closure1: {"": "Closure;prototypeForTag_2",
 }}],
 ["dart._collection.dev", "dart:_collection-dev", , H, {
 Arrays_copy: function(src, srcStart, dst, dstStart, count) {
-  var i, j, t1;
+  var i, j, t1, t2;
   if (srcStart < dstStart)
-    for (i = srcStart + count - 1, j = dstStart + count - 1; i >= srcStart; --i, --j) {
-      if (i < 0 || i >= src.length)
+    for (i = srcStart + count - 1, j = dstStart + count - 1, t1 = src.length; i >= srcStart; --i, --j) {
+      if (i < 0 || i >= t1)
         throw H.ioore(src, i);
       C.JSArray_methods.$indexSet(dst, j, src[i]);
     }
   else
-    for (t1 = srcStart + count, j = dstStart, i = srcStart; i < t1; ++i, ++j) {
-      if (i < 0 || i >= src.length)
+    for (t1 = srcStart + count, t2 = src.length, j = dstStart, i = srcStart; i < t1; ++i, ++j) {
+      if (i < 0 || i >= t2)
         throw H.ioore(src, i);
       C.JSArray_methods.$indexSet(dst, j, src[i]);
     }
@@ -3770,13 +3780,6 @@ _RootZone: {"": "_BaseZone;",
   }
 }}],
 ["dart.collection", "dart:collection", , P, {
-_HashSet__newHashTable: function() {
-  var table = Object.create(null);
-  table["<non-identifier-key>"] = table;
-  delete table["<non-identifier-key>"];
-  return table;
-},
-
 _defaultEquals: function(a, b) {
   return J.$eq(a, b);
 },
@@ -4448,11 +4451,14 @@ _HashSet: {"": "_HashSetBase;",
     return J.$index$asx(bucket, index);
   },
   add$1: function(_, element) {
-    var rest, hash, bucket;
+    var rest, table, hash, bucket;
     rest = this._rest;
     if (rest == null) {
-      rest = P._HashSet__newHashTable();
-      this._rest = rest;
+      table = Object.create(null);
+      table["<non-identifier-key>"] = table;
+      delete table["<non-identifier-key>"];
+      this._rest = table;
+      rest = table;
     }
     hash = this._computeHashCode$1(element);
     bucket = rest[hash];
@@ -5615,7 +5621,6 @@ main: function() {
 
   p = E.programSetup(t1.gl_0);
   t1.gl_0.useProgram(p.program);
-  E.genGridPointList();
   E.gridBufferSetup(t1.gl_0);
   E.icosaBufferSetup(t1.gl_0);
   t1.lastTime_1 = 0;
@@ -5638,67 +5643,15 @@ programSetup: function(gl) {
   return E.GlProgram$(gl, "      precision mediump float;\n      varying lowp vec4 vColor;\n\n      void main(void) {\n      gl_FragColor = vColor;\n      }\n      ", "      attribute vec3 aVertexPosition;\n      attribute vec4 aVertexColor;\n\n      uniform mat4 uMVMatrix;\n      uniform mat4 uPMatrix;\n\n      varying lowp vec4 vColor;\n\n      void main(void) {\n        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);\n        vColor = aVertexColor;\n      }", ["aVertexPosition", "aVertexColor"], ["uMVMatrix", "uPMatrix"]);
 },
 
-genGridPointList: function() {
-  var t1, t2, x, y, u1, u2, v, a, i, t3, j, b, i0, c, off, z;
-  t1 = new E.genGridPointList_scaleV();
-  t2 = new E.genGridPointList_addV();
-  x = Math.cos(1.0471975511965976);
-  y = Math.sin(1.0471975511965976);
-  u1 = [1, 0, 0];
-  u2 = [x, y, 0];
-  v = [-1.6, -1.6 / Math.tan(1.0471975511965976), 0];
-  a = P.List_List(5, null);
-  for (i = 0; i < 5; ++i) {
-    x = t2.call$2(t1.call$2(u2, i * 3.2 / 4), v);
-    a[i] = P.List_List(null, null);
-    a[i].push(x);
-    for (t3 = 5 - i, j = 1; j < t3; ++j) {
-      y = t1.call$2(u1, j * 3.2 / 4);
-      a[i].push(t2.call$2(x, y));
-    }
-  }
-  b = P.List_List(null, null);
-  for (i = 0; i < 4; i = i0) {
-    for (t1 = 4 - i, i0 = i + 1, j = 0; t2 = a[i], j < t1; ++j) {
-      if (j >= t2.length)
-        throw H.ioore(t2, j);
-      b.push(t2[j]);
-      t2 = a[i0];
-      if (j >= t2.length)
-        throw H.ioore(t2, j);
-      b.push(t2[j]);
-    }
-    if (t1 >= t2.length)
-      throw H.ioore(t2, t1);
-    b.push(t2[t1]);
-  }
-  c = P.List_List(null, null);
-  t1 = new E.genGridPointList_addVtoc(c);
-  for (i = 7, off = 0; i >= 1; off += i + 2, i -= 2)
-    for (j = 0; j < i; ++j) {
-      z = off + j;
-      if (z < 0 || z >= b.length)
-        throw H.ioore(b, z);
-      t1.call$1(b[z]);
-      t2 = z + 1;
-      if (t2 >= b.length)
-        throw H.ioore(b, t2);
-      t1.call$1(b[t2]);
-      t2 = z + 2;
-      if (t2 >= b.length)
-        throw H.ioore(b, t2);
-      t1.call$1(b[t2]);
-    }
-  return c;
-},
-
 gridBufferSetup: function(gl) {
-  var pbuf, ibuf, cbuf, a, t1, purp, blue, green, orange, salmon, colors;
+  var pbuf, ibuf, cbuf, sl, t1, a, purp, blue, green, orange, salmon, colors;
   pbuf = gl.createBuffer();
   ibuf = gl.createBuffer();
   cbuf = gl.createBuffer();
   $.triGrid = new E.Figure(pbuf, ibuf, cbuf, [0, 1.8, -9], 0);
-  a = E.genGridPointList();
+  sl = Math.tan(1.0471975511965976);
+  t1 = Math.cos(1.0471975511965976);
+  a = E.gridifyTriangle([-1.6, -1.6 / sl, 0], [t1, Math.sin(1.0471975511965976), 0], [1, 0, 0], 3.2);
   gl.bindBuffer(34962, pbuf);
   t1 = new Float32Array(a);
   t1.$dartCachedLength = t1.length;
@@ -5740,8 +5693,57 @@ gridBufferSetup: function(gl) {
   gl.bufferData(34962, t1, 35044);
 },
 
+gridifyTriangle: function(startingPoint, leftEdge, botEdge, s) {
+  var t1, t2, a, i, x, t3, j, y, b, i0, c, off, z;
+  t1 = new E.gridifyTriangle_scaleV();
+  t2 = new E.gridifyTriangle_addV();
+  a = P.List_List(5, null);
+  for (i = 0; i < 5; ++i) {
+    x = t2.call$2(t1.call$2(leftEdge, i * s / 4), startingPoint);
+    a[i] = P.List_List(null, null);
+    a[i].push(x);
+    for (t3 = 5 - i, j = 1; j < t3; ++j) {
+      y = t1.call$2(botEdge, j * s / 4);
+      a[i].push(t2.call$2(x, y));
+    }
+  }
+  b = P.List_List(null, null);
+  for (i = 0; i < 4; i = i0) {
+    for (t1 = 4 - i, i0 = i + 1, j = 0; t2 = a[i], j < t1; ++j) {
+      if (j >= t2.length)
+        throw H.ioore(t2, j);
+      b.push(t2[j]);
+      t2 = a[i0];
+      if (j >= t2.length)
+        throw H.ioore(t2, j);
+      b.push(t2[j]);
+    }
+    if (t1 >= t2.length)
+      throw H.ioore(t2, t1);
+    b.push(t2[t1]);
+  }
+  c = P.List_List(null, null);
+  t1 = new E.gridifyTriangle_addVtoc(c);
+  for (i = 7, off = 0; i >= 1; off += i + 2, i -= 2)
+    for (j = 0; j < i; ++j) {
+      z = off + j;
+      if (z < 0 || z >= b.length)
+        throw H.ioore(b, z);
+      t1.call$1(b[z]);
+      t2 = z + 1;
+      if (t2 >= b.length)
+        throw H.ioore(b, t2);
+      t1.call$1(b[t2]);
+      t2 = z + 2;
+      if (t2 >= b.length)
+        throw H.ioore(b, t2);
+      t1.call$1(b[t2]);
+    }
+  return c;
+},
+
 icosaBufferSetup: function(gl) {
-  var t1, t2, a, t3, phi, $top, v, vdiff_top, i, bot, w, z, i0, pbuf, ibuf, cbuf, colors, white, black, new_colors;
+  var t1, t2, a, t3, phi, $top, v, vdiff_top, vdiff_prev, i, t4, t5, bot, w, wdiff_top, wdiff_prev, z, i0, pbuf, ibuf, cbuf, gridPointsIndices, colors, purp, blue, green, orange, salmon, purp_l, blue_l, green_l, orange_l, salmon_l, white, black, new_colors;
   t1 = new E.icosaBufferSetup_scaleV();
   t2 = new E.icosaBufferSetup_addV();
   a = P.List_List(null, null);
@@ -5750,31 +5752,50 @@ icosaBufferSetup: function(gl) {
   $top = [0, 1, phi];
   v = [[0, -1, phi], [-phi, 0, 1], [-1, phi, 0], [1, phi, 0], [phi, 0, 1]];
   vdiff_top = P.List_List(null, null);
-  for (i = 0; i < 5; ++i)
+  vdiff_prev = P.List_List(null, null);
+  for (i = 0; i < 5; ++i) {
     vdiff_top.push(t2.call$2($top, t1.call$2(v[i], -1)));
-  for (i = 0; i < 5;) {
-    t3.call$1($top);
-    t3.call$1(v[i]);
-    ++i;
-    t2 = C.JSInt_methods.$mod(i, 5);
-    if (t2 < 0 || t2 >= 5)
-      throw H.ioore(v, t2);
-    t3.call$1(v[t2]);
+    t4 = C.JSInt_methods.$mod(i - 1, 5);
+    if (t4 < 0 || t4 >= 5)
+      throw H.ioore(v, t4);
+    vdiff_prev.push(t2.call$2(v[t4], t1.call$2(v[i], -1)));
+  }
+  for (i = 0; i < 5; ++i) {
+    t4 = v[i];
+    if (i >= vdiff_top.length)
+      throw H.ioore(vdiff_top, i);
+    t5 = vdiff_top[i];
+    if (i >= vdiff_prev.length)
+      throw H.ioore(vdiff_prev, i);
+    C.JSArray_methods.addAll$1(a, E.gridifyTriangle(t4, t5, vdiff_prev[i], 1));
   }
   bot = t1.call$2($top, -1);
-  t1 = new H.MappedListIterable(v, new E.icosaBufferSetup_closure(t1));
-  H.setRuntimeTypeInfo(t1, [null, null]);
-  w = t1.toList$0(t1);
-  for (i = 0; i < 5;) {
-    t3.call$1(bot);
+  t4 = new H.MappedListIterable(v, new E.icosaBufferSetup_closure(t1));
+  H.setRuntimeTypeInfo(t4, [null, null]);
+  w = t4.toList$0(t4);
+  wdiff_top = P.List_List(null, null);
+  wdiff_prev = P.List_List(null, null);
+  for (i = 0; i < w.length; ++i) {
+    wdiff_top.push(t2.call$2(bot, t1.call$2(w[i], -1)));
+    t4 = C.JSInt_methods.$mod(i - 1, 5);
+    t5 = w.length;
+    if (t4 < 0 || t4 >= t5)
+      throw H.ioore(w, t4);
+    t4 = w[t4];
+    if (i >= t5)
+      throw H.ioore(w, i);
+    wdiff_prev.push(t2.call$2(t4, t1.call$2(w[i], -1)));
+  }
+  for (i = 0; i < 5; ++i) {
     if (i >= w.length)
       throw H.ioore(w, i);
-    t3.call$1(w[i]);
-    ++i;
-    t1 = C.JSInt_methods.$mod(i, 5);
-    if (t1 < 0 || t1 >= w.length)
-      throw H.ioore(w, t1);
-    t3.call$1(w[t1]);
+    t1 = w[i];
+    if (i >= wdiff_top.length)
+      throw H.ioore(wdiff_top, i);
+    t2 = wdiff_top[i];
+    if (i >= wdiff_prev.length)
+      throw H.ioore(wdiff_prev, i);
+    C.JSArray_methods.addAll$1(a, E.gridifyTriangle(t1, t2, wdiff_prev[i], 1));
   }
   z = P.List_List(null, null);
   if (2 >= w.length)
@@ -5817,29 +5838,46 @@ icosaBufferSetup: function(gl) {
   pbuf = gl.createBuffer();
   ibuf = gl.createBuffer();
   cbuf = gl.createBuffer();
-  $.icosa = new E.Figure(pbuf, ibuf, cbuf, [0, -3, -16], 0);
+  $.icosa = new E.Figure(pbuf, ibuf, cbuf, [0, -2, -11], 0);
   gl.bindBuffer(34962, pbuf);
   t1 = new Float32Array(a);
   t1.$dartCachedLength = t1.length;
   gl.bufferData(34962, t1, 35044);
+  gridPointsIndices = [];
+  for (i = 0; i < 510; ++i)
+    gridPointsIndices.push(i);
   gl.bindBuffer(34963, ibuf);
-  t1 = new Uint16Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]);
+  t1 = new Uint16Array(gridPointsIndices);
   t1.$dartCachedLength = t1.length;
   gl.bufferData(34963, t1, 35044);
   colors = P.List_List(null, null);
   t1 = new E.icosaBufferSetup_add3(new E.icosaBufferSetup_addColor(colors));
+  purp = [192, 62, 255, 255];
+  blue = [48, 186, 232, 255];
+  green = [121, 255, 65, 255];
+  orange = [232, 171, 48, 255];
+  salmon = [255, 71, 117, 255];
+  purp_l = [192, 62, 255, 165.75];
+  blue_l = [48, 186, 232, 165.75];
+  green_l = [121, 255, 65, 165.75];
+  orange_l = [232, 171, 48, 165.75];
+  salmon_l = [255, 71, 117, 165.75];
   white = [255, 255, 255, 255];
   black = [0, 0, 0, 255];
-  t1.call$1([192, 62, 255, 255]);
-  t1.call$1([48, 186, 232, 255]);
-  t1.call$1([121, 255, 65, 255]);
-  t1.call$1([232, 171, 48, 255]);
-  t1.call$1([255, 71, 117, 255]);
-  t1.call$1([192, 62, 255, 165.75]);
-  t1.call$1([48, 186, 232, 165.75]);
-  t1.call$1([121, 255, 65, 165.75]);
-  t1.call$1([232, 171, 48, 165.75]);
-  t1.call$1([255, 71, 117, 165.75]);
+  for (i = 0; i < 16; ++i) {
+    t1.call$1(purp);
+    t1.call$1(blue);
+    t1.call$1(green);
+    t1.call$1(orange);
+    t1.call$1(salmon);
+  }
+  for (i = 0; i < 16; ++i) {
+    t1.call$1(purp_l);
+    t1.call$1(blue_l);
+    t1.call$1(green_l);
+    t1.call$1(orange_l);
+    t1.call$1(salmon_l);
+  }
   t1.call$1(white);
   t1.call$1(black);
   t1.call$1(white);
@@ -5852,7 +5890,7 @@ icosaBufferSetup: function(gl) {
   t1.call$1(black);
   t1 = new H.MappedListIterable(colors, new E.icosaBufferSetup_closure0());
   H.setRuntimeTypeInfo(t1, [null, null]);
-  new_colors = P.List_List$from(t1, true, null);
+  new_colors = t1.toList$0(t1);
   gl.bindBuffer(34962, cbuf);
   t1 = new Float32Array(new_colors);
   t1.$dartCachedLength = t1.length;
@@ -5900,7 +5938,7 @@ drawScene: function(gl, prog, aspect) {
   gl.vertexAttribPointer(t2.$index(t2, "aVertexColor"), 4, 5126, false, 0, 0);
   gl.uniformMatrix4fv(t1.$index(t1, "uPMatrix"), false, $.pMatrix.buf);
   gl.uniformMatrix4fv(t1.$index(t1, "uMVMatrix"), false, $.icosa_mvMatrix.buf);
-  gl.drawElements(4, 60, 5123, 0);
+  gl.drawElements(4, 510, 5123, 0);
   t1 = $.get$mvStack();
   if (0 >= t1.length)
     throw H.ioore(t1, 0);
@@ -6266,39 +6304,6 @@ main_tick: {"": "Closure;box_0,canvas_1,p_2,animate_3",
   $is_args1: true
 },
 
-genGridPointList_scaleV: {"": "Closure;",
-  call$2: function(xs, c) {
-    var t1, t2;
-    t1 = J.getInterceptor$asx(xs);
-    t2 = J.getInterceptor$n(c);
-    return [t2.$mul(c, t1.$index(xs, 0)), t2.$mul(c, t1.$index(xs, 1)), t2.$mul(c, t1.$index(xs, 2))];
-  },
-  $is_args2: true
-},
-
-genGridPointList_addV: {"": "Closure;",
-  call$2: function(u, v) {
-    var t1, t2;
-    t1 = J.getInterceptor$asx(u);
-    t2 = J.getInterceptor$asx(v);
-    return [J.$add$ns(t1.$index(u, 0), t2.$index(v, 0)), J.$add$ns(t1.$index(u, 1), t2.$index(v, 1)), J.$add$ns(t1.$index(u, 2), t2.$index(v, 2))];
-  },
-  $is_args2: true
-},
-
-genGridPointList_addVtoc: {"": "Closure;c_0",
-  call$1: function(v) {
-    var t1, t2;
-    t1 = this.c_0;
-    t2 = J.getInterceptor$asx(v);
-    t1.push(t2.$index(v, 0));
-    t1.push(t2.$index(v, 1));
-    t1.push(t2.$index(v, 2));
-    return t1;
-  },
-  $is_args1: true
-},
-
 gridBufferSetup_scaleV: {"": "Closure;",
   call$2: function(xs, c) {
     var t1, t2;
@@ -6329,6 +6334,39 @@ gridBufferSetup_add3: {"": "Closure;addColor_1",
     t1.call$1(v);
     t1.call$1(v);
     t1.call$1(v);
+  },
+  $is_args1: true
+},
+
+gridifyTriangle_scaleV: {"": "Closure;",
+  call$2: function(xs, c) {
+    var t1, t2;
+    t1 = J.getInterceptor$asx(xs);
+    t2 = J.getInterceptor$n(c);
+    return [t2.$mul(c, t1.$index(xs, 0)), t2.$mul(c, t1.$index(xs, 1)), t2.$mul(c, t1.$index(xs, 2))];
+  },
+  $is_args2: true
+},
+
+gridifyTriangle_addV: {"": "Closure;",
+  call$2: function(u, v) {
+    var t1, t2;
+    t1 = J.getInterceptor$asx(u);
+    t2 = J.getInterceptor$asx(v);
+    return [J.$add$ns(t1.$index(u, 0), t2.$index(v, 0)), J.$add$ns(t1.$index(u, 1), t2.$index(v, 1)), J.$add$ns(t1.$index(u, 2), t2.$index(v, 2))];
+  },
+  $is_args2: true
+},
+
+gridifyTriangle_addVtoc: {"": "Closure;c_0",
+  call$1: function(v) {
+    var t1, t2;
+    t1 = this.c_0;
+    t2 = J.getInterceptor$asx(v);
+    t1.push(t2.$index(v, 0));
+    t1.push(t2.$index(v, 1));
+    t1.push(t2.$index(v, 2));
+    return t1;
   },
   $is_args1: true
 },
@@ -11665,34 +11703,6 @@ function dart_precompiled($collectedClasses) {
   if ($desc instanceof Array)
     $desc = $desc[1];
   main_tick.prototype = $desc;
-  function genGridPointList_scaleV() {
-  }
-  genGridPointList_scaleV.builtin$cls = "genGridPointList_scaleV";
-  if (!"name" in genGridPointList_scaleV)
-    genGridPointList_scaleV.name = "genGridPointList_scaleV";
-  $desc = $collectedClasses.genGridPointList_scaleV;
-  if ($desc instanceof Array)
-    $desc = $desc[1];
-  genGridPointList_scaleV.prototype = $desc;
-  function genGridPointList_addV() {
-  }
-  genGridPointList_addV.builtin$cls = "genGridPointList_addV";
-  if (!"name" in genGridPointList_addV)
-    genGridPointList_addV.name = "genGridPointList_addV";
-  $desc = $collectedClasses.genGridPointList_addV;
-  if ($desc instanceof Array)
-    $desc = $desc[1];
-  genGridPointList_addV.prototype = $desc;
-  function genGridPointList_addVtoc(c_0) {
-    this.c_0 = c_0;
-  }
-  genGridPointList_addVtoc.builtin$cls = "genGridPointList_addVtoc";
-  if (!"name" in genGridPointList_addVtoc)
-    genGridPointList_addVtoc.name = "genGridPointList_addVtoc";
-  $desc = $collectedClasses.genGridPointList_addVtoc;
-  if ($desc instanceof Array)
-    $desc = $desc[1];
-  genGridPointList_addVtoc.prototype = $desc;
   function gridBufferSetup_scaleV() {
   }
   gridBufferSetup_scaleV.builtin$cls = "gridBufferSetup_scaleV";
@@ -11722,6 +11732,34 @@ function dart_precompiled($collectedClasses) {
   if ($desc instanceof Array)
     $desc = $desc[1];
   gridBufferSetup_add3.prototype = $desc;
+  function gridifyTriangle_scaleV() {
+  }
+  gridifyTriangle_scaleV.builtin$cls = "gridifyTriangle_scaleV";
+  if (!"name" in gridifyTriangle_scaleV)
+    gridifyTriangle_scaleV.name = "gridifyTriangle_scaleV";
+  $desc = $collectedClasses.gridifyTriangle_scaleV;
+  if ($desc instanceof Array)
+    $desc = $desc[1];
+  gridifyTriangle_scaleV.prototype = $desc;
+  function gridifyTriangle_addV() {
+  }
+  gridifyTriangle_addV.builtin$cls = "gridifyTriangle_addV";
+  if (!"name" in gridifyTriangle_addV)
+    gridifyTriangle_addV.name = "gridifyTriangle_addV";
+  $desc = $collectedClasses.gridifyTriangle_addV;
+  if ($desc instanceof Array)
+    $desc = $desc[1];
+  gridifyTriangle_addV.prototype = $desc;
+  function gridifyTriangle_addVtoc(c_0) {
+    this.c_0 = c_0;
+  }
+  gridifyTriangle_addVtoc.builtin$cls = "gridifyTriangle_addVtoc";
+  if (!"name" in gridifyTriangle_addVtoc)
+    gridifyTriangle_addVtoc.name = "gridifyTriangle_addVtoc";
+  $desc = $collectedClasses.gridifyTriangle_addVtoc;
+  if ($desc instanceof Array)
+    $desc = $desc[1];
+  gridifyTriangle_addVtoc.prototype = $desc;
   function icosaBufferSetup_scaleV() {
   }
   icosaBufferSetup_scaleV.builtin$cls = "icosaBufferSetup_scaleV";
@@ -11848,5 +11886,5 @@ function dart_precompiled($collectedClasses) {
   if ($desc instanceof Array)
     $desc = $desc[1];
   Closure$20.prototype = $desc;
-  return [HtmlElement, AnchorElement, AnimationEvent, AreaElement, AudioElement, AutocompleteErrorEvent, BRElement, BaseElement, BeforeLoadEvent, BeforeUnloadEvent, BodyElement, ButtonElement, CDataSection, CanvasElement, CanvasRenderingContext, CanvasRenderingContext2D, CharacterData, CloseEvent, Comment, CompositionEvent, ContentElement, CssFontFaceLoadEvent, CustomEvent, DListElement, DataListElement, DetailsElement, DeviceMotionEvent, DeviceOrientationEvent, DialogElement, DivElement, Document, DocumentFragment, DocumentType, DomError, DomException, Element, EmbedElement, ErrorEvent, Event, EventTarget, FieldSetElement, FileError, FocusEvent, FormElement, HRElement, HashChangeEvent, HeadElement, HeadingElement, HtmlDocument, HtmlHtmlElement, IFrameElement, ImageElement, InputElement, KeyboardEvent, KeygenElement, LIElement, LabelElement, LegendElement, LinkElement, MapElement, MediaElement, MediaError, MediaKeyError, MediaKeyEvent, MediaKeyMessageEvent, MediaKeyNeededEvent, MediaStream, MediaStreamEvent, MediaStreamTrackEvent, MenuElement, MessageEvent, MetaElement, MeterElement, MidiConnectionEvent, MidiMessageEvent, ModElement, MouseEvent, Navigator, NavigatorUserMediaError, Node, OListElement, ObjectElement, OptGroupElement, OptionElement, OutputElement, OverflowEvent, PageTransitionEvent, ParagraphElement, ParamElement, PopStateEvent, PositionError, PreElement, ProcessingInstruction, ProgressElement, ProgressEvent, QuoteElement, ResourceProgressEvent, RtcDataChannelEvent, RtcDtmfToneChangeEvent, RtcIceCandidateEvent, ScriptElement, SecurityPolicyViolationEvent, SelectElement, ShadowElement, ShadowRoot, SourceElement, SpanElement, SpeechInputEvent, SpeechRecognitionError, SpeechRecognitionEvent, SpeechSynthesisEvent, StorageEvent, StyleElement, TableCaptionElement, TableCellElement, TableColElement, TableElement, TableRowElement, TableSectionElement, TemplateElement, Text, TextAreaElement, TextEvent, TitleElement, TouchEvent, TrackElement, TrackEvent, TransitionEvent, UIEvent, UListElement, UnknownElement, VideoElement, WheelEvent, Window, _Attr, _Entity, _HTMLAppletElement, _HTMLBaseFontElement, _HTMLDirectoryElement, _HTMLFontElement, _HTMLFrameElement, _HTMLFrameSetElement, _HTMLMarqueeElement, _MutationEvent, _NamedNodeMap, _Notation, _XMLHttpRequestProgressEvent, VersionChangeEvent, AElement, AltGlyphElement, AnimateElement, AnimateMotionElement, AnimateTransformElement, AnimatedLength, AnimatedNumberList, AnimationElement, CircleElement, ClipPathElement, DefsElement, DescElement, EllipseElement, FEBlendElement, FEColorMatrixElement, FEComponentTransferElement, FECompositeElement, FEConvolveMatrixElement, FEDiffuseLightingElement, FEDisplacementMapElement, FEDistantLightElement, FEFloodElement, FEFuncAElement, FEFuncBElement, FEFuncGElement, FEFuncRElement, FEGaussianBlurElement, FEImageElement, FEMergeElement, FEMergeNodeElement, FEMorphologyElement, FEOffsetElement, FEPointLightElement, FESpecularLightingElement, FESpotLightElement, FETileElement, FETurbulenceElement, FilterElement, ForeignObjectElement, GElement, GraphicsElement, ImageElement0, LineElement, LinearGradientElement, MarkerElement, MaskElement, MetadataElement, PathElement, PatternElement, PolygonElement, PolylineElement, RadialGradientElement, Rect, RectElement, ScriptElement0, SetElement, StopElement, StyleElement0, SvgDocument, SvgElement, SvgSvgElement, SwitchElement, SymbolElement, TSpanElement, TextContentElement, TextElement, TextPathElement, TextPositioningElement, TitleElement0, UseElement, ViewElement, ZoomEvent, _GradientElement, _SVGAltGlyphDefElement, _SVGAltGlyphItemElement, _SVGAnimateColorElement, _SVGComponentTransferFunctionElement, _SVGCursorElement, _SVGFEDropShadowElement, _SVGFontElement, _SVGFontFaceElement, _SVGFontFaceFormatElement, _SVGFontFaceNameElement, _SVGFontFaceSrcElement, _SVGFontFaceUriElement, _SVGGlyphElement, _SVGGlyphRefElement, _SVGHKernElement, _SVGMPathElement, _SVGMissingGlyphElement, _SVGVKernElement, AudioProcessingEvent, OfflineAudioCompletionEvent, Buffer, ContextEvent, Program, RenderingContext, Shader, UniformLocation, SqlError, TypedData, Float32List, Uint16List, Uint8List, JS_CONST, Interceptor, JSBool, JSNull, JavaScriptObject, PlainJavaScriptObject, UnknownJavaScriptObject, JSArray, JSMutableArray, JSFixedArray, JSExtendableArray, JSNumber, JSInt, JSDouble, JSString, startRootIsolate_closure, startRootIsolate_closure0, _Manager, _IsolateContext, _EventLoop, _EventLoop__runHelper_next, _IsolateEvent, _MainManagerStub, IsolateNatives__processWorkerMessage_closure, _BaseSendPort, _NativeJsSendPort, _NativeJsSendPort_send_closure, _NativeJsSendPort_send__closure, _WorkerSendPort, _WorkerSendPort_send_closure, ReceivePortImpl, BoundClosure$i0, _waitForPendingPorts_closure, _PendingSendPortFinder, _JsSerializer, _JsCopier, _JsDeserializer, _JsVisitedMap, _MessageTraverserVisitedMap, _MessageTraverser, BoundClosure$1, _Copier, _Copier_visitMap_closure, _Serializer, _Deserializer, TimerImpl, TimerImpl_internalCallback, TimerImpl_internalCallback0, TypeErrorDecoder, NullError, JsNoSuchMethodError, UnknownJsTypeError, unwrapException_saveStackTrace, _StackTrace, invokeClosure_closure, invokeClosure_closure0, invokeClosure_closure1, invokeClosure_closure2, invokeClosure_closure3, Closure, BoundClosure, initHooks_closure, initHooks_closure0, initHooks_closure1, ListIterable, ListIterator, MappedIterable, EfficientLengthMappedIterable, MappedIterator, MappedListIterable, FixedLengthListMixin, _AsyncError, Future, Future_wait_handleError, Future_wait_closure, _Completer, _AsyncCompleter, _Future, BoundClosure$2, _Future__addListener_closure, _Future__chainFutures_closure, _Future__chainFutures_closure0, _Future__asyncComplete_closure, _Future__asyncCompleteError_closure, _Future__propagateToListeners_closure, _Future__propagateToListeners_closure0, _Future__propagateToListeners__closure, _Future__propagateToListeners__closure0, Stream, Stream_forEach_closure, Stream_forEach__closure, Stream_forEach__closure0, Stream_forEach_closure0, Stream_length_closure, Stream_length_closure0, StreamSubscription, _StreamController, _StreamController__subscribe_closure, _StreamController__recordCancel_complete, _SyncStreamControllerDispatch, _AsyncStreamControllerDispatch, _AsyncStreamController, _StreamController__AsyncStreamControllerDispatch, _SyncStreamController, _StreamController__SyncStreamControllerDispatch, _ControllerStream, _ControllerSubscription, BoundClosure$0, _EventSink, _BufferingStreamSubscription, _BufferingStreamSubscription__sendDone_sendDone, _StreamImpl, _DelayedEvent, _DelayedData, _DelayedDone, _PendingEvents, _PendingEvents_schedule_closure, _StreamImplEvents, _cancelAndError_closure, _cancelAndErrorClosure_closure, _BaseZone, _BaseZone_bindCallback_closure, _BaseZone_bindCallback_closure0, _BaseZone_bindUnaryCallback_closure, _BaseZone_bindUnaryCallback_closure0, _rootHandleUncaughtError_closure, _rootHandleUncaughtError__closure, _RootZone, _HashMap, _HashMap_values_closure, HashMapKeyIterable, HashMapKeyIterator, _LinkedHashMap, _LinkedHashMap_values_closure, LinkedHashMapCell, LinkedHashMapKeyIterable, LinkedHashMapKeyIterator, _HashSet, _IdentityHashSet, HashSetIterator, _HashSetBase, IterableBase, ListMixin, Maps_mapToString_closure, ListQueue, _ListQueueIterator, NoSuchMethodError_toString_closure, Duration, Duration_toString_sixDigits, Duration_toString_twoDigits, Error, NullThrownError, ArgumentError, RangeError, UnsupportedError, UnimplementedError, StateError, ConcurrentModificationError, StackOverflowError, CyclicInitializationError, _ExceptionImplementation, Expando, Function, Iterator, Null, Object, StackTrace, StringBuffer, Symbol, Interceptor_ListMixin, Interceptor_ListMixin_ImmutableListMixin, ImmutableListMixin, FixedSizeListIterator, ReceivePort, TypedData_ListMixin, TypedData_ListMixin_FixedLengthListMixin, TypedData_ListMixin0, TypedData_ListMixin_FixedLengthListMixin0, TypedData_ListMixin1, TypedData_ListMixin_FixedLengthListMixin1, convertDartToNative_Dictionary_closure, GlProgram, Matrix4, main_animate, main_tick, genGridPointList_scaleV, genGridPointList_addV, genGridPointList_addVtoc, gridBufferSetup_scaleV, gridBufferSetup_addColor, gridBufferSetup_add3, icosaBufferSetup_scaleV, icosaBufferSetup_addV, icosaBufferSetup_addVtoa, icosaBufferSetup_closure, icosaBufferSetup_addColor, icosaBufferSetup_add3, icosaBufferSetup_closure0, Figure, Closure$2, Closure$0, Closure$7, Closure$1, Closure$20];
+  return [HtmlElement, AnchorElement, AnimationEvent, AreaElement, AudioElement, AutocompleteErrorEvent, BRElement, BaseElement, BeforeLoadEvent, BeforeUnloadEvent, BodyElement, ButtonElement, CDataSection, CanvasElement, CanvasRenderingContext, CanvasRenderingContext2D, CharacterData, CloseEvent, Comment, CompositionEvent, ContentElement, CssFontFaceLoadEvent, CustomEvent, DListElement, DataListElement, DetailsElement, DeviceMotionEvent, DeviceOrientationEvent, DialogElement, DivElement, Document, DocumentFragment, DocumentType, DomError, DomException, Element, EmbedElement, ErrorEvent, Event, EventTarget, FieldSetElement, FileError, FocusEvent, FormElement, HRElement, HashChangeEvent, HeadElement, HeadingElement, HtmlDocument, HtmlHtmlElement, IFrameElement, ImageElement, InputElement, KeyboardEvent, KeygenElement, LIElement, LabelElement, LegendElement, LinkElement, MapElement, MediaElement, MediaError, MediaKeyError, MediaKeyEvent, MediaKeyMessageEvent, MediaKeyNeededEvent, MediaStream, MediaStreamEvent, MediaStreamTrackEvent, MenuElement, MessageEvent, MetaElement, MeterElement, MidiConnectionEvent, MidiMessageEvent, ModElement, MouseEvent, Navigator, NavigatorUserMediaError, Node, OListElement, ObjectElement, OptGroupElement, OptionElement, OutputElement, OverflowEvent, PageTransitionEvent, ParagraphElement, ParamElement, PopStateEvent, PositionError, PreElement, ProcessingInstruction, ProgressElement, ProgressEvent, QuoteElement, ResourceProgressEvent, RtcDataChannelEvent, RtcDtmfToneChangeEvent, RtcIceCandidateEvent, ScriptElement, SecurityPolicyViolationEvent, SelectElement, ShadowElement, ShadowRoot, SourceElement, SpanElement, SpeechInputEvent, SpeechRecognitionError, SpeechRecognitionEvent, SpeechSynthesisEvent, StorageEvent, StyleElement, TableCaptionElement, TableCellElement, TableColElement, TableElement, TableRowElement, TableSectionElement, TemplateElement, Text, TextAreaElement, TextEvent, TitleElement, TouchEvent, TrackElement, TrackEvent, TransitionEvent, UIEvent, UListElement, UnknownElement, VideoElement, WheelEvent, Window, _Attr, _Entity, _HTMLAppletElement, _HTMLBaseFontElement, _HTMLDirectoryElement, _HTMLFontElement, _HTMLFrameElement, _HTMLFrameSetElement, _HTMLMarqueeElement, _MutationEvent, _NamedNodeMap, _Notation, _XMLHttpRequestProgressEvent, VersionChangeEvent, AElement, AltGlyphElement, AnimateElement, AnimateMotionElement, AnimateTransformElement, AnimatedLength, AnimatedNumberList, AnimationElement, CircleElement, ClipPathElement, DefsElement, DescElement, EllipseElement, FEBlendElement, FEColorMatrixElement, FEComponentTransferElement, FECompositeElement, FEConvolveMatrixElement, FEDiffuseLightingElement, FEDisplacementMapElement, FEDistantLightElement, FEFloodElement, FEFuncAElement, FEFuncBElement, FEFuncGElement, FEFuncRElement, FEGaussianBlurElement, FEImageElement, FEMergeElement, FEMergeNodeElement, FEMorphologyElement, FEOffsetElement, FEPointLightElement, FESpecularLightingElement, FESpotLightElement, FETileElement, FETurbulenceElement, FilterElement, ForeignObjectElement, GElement, GraphicsElement, ImageElement0, LineElement, LinearGradientElement, MarkerElement, MaskElement, MetadataElement, PathElement, PatternElement, PolygonElement, PolylineElement, RadialGradientElement, Rect, RectElement, ScriptElement0, SetElement, StopElement, StyleElement0, SvgDocument, SvgElement, SvgSvgElement, SwitchElement, SymbolElement, TSpanElement, TextContentElement, TextElement, TextPathElement, TextPositioningElement, TitleElement0, UseElement, ViewElement, ZoomEvent, _GradientElement, _SVGAltGlyphDefElement, _SVGAltGlyphItemElement, _SVGAnimateColorElement, _SVGComponentTransferFunctionElement, _SVGCursorElement, _SVGFEDropShadowElement, _SVGFontElement, _SVGFontFaceElement, _SVGFontFaceFormatElement, _SVGFontFaceNameElement, _SVGFontFaceSrcElement, _SVGFontFaceUriElement, _SVGGlyphElement, _SVGGlyphRefElement, _SVGHKernElement, _SVGMPathElement, _SVGMissingGlyphElement, _SVGVKernElement, AudioProcessingEvent, OfflineAudioCompletionEvent, Buffer, ContextEvent, Program, RenderingContext, Shader, UniformLocation, SqlError, TypedData, Float32List, Uint16List, Uint8List, JS_CONST, Interceptor, JSBool, JSNull, JavaScriptObject, PlainJavaScriptObject, UnknownJavaScriptObject, JSArray, JSMutableArray, JSFixedArray, JSExtendableArray, JSNumber, JSInt, JSDouble, JSString, startRootIsolate_closure, startRootIsolate_closure0, _Manager, _IsolateContext, _EventLoop, _EventLoop__runHelper_next, _IsolateEvent, _MainManagerStub, IsolateNatives__processWorkerMessage_closure, _BaseSendPort, _NativeJsSendPort, _NativeJsSendPort_send_closure, _NativeJsSendPort_send__closure, _WorkerSendPort, _WorkerSendPort_send_closure, ReceivePortImpl, BoundClosure$i0, _waitForPendingPorts_closure, _PendingSendPortFinder, _JsSerializer, _JsCopier, _JsDeserializer, _JsVisitedMap, _MessageTraverserVisitedMap, _MessageTraverser, BoundClosure$1, _Copier, _Copier_visitMap_closure, _Serializer, _Deserializer, TimerImpl, TimerImpl_internalCallback, TimerImpl_internalCallback0, TypeErrorDecoder, NullError, JsNoSuchMethodError, UnknownJsTypeError, unwrapException_saveStackTrace, _StackTrace, invokeClosure_closure, invokeClosure_closure0, invokeClosure_closure1, invokeClosure_closure2, invokeClosure_closure3, Closure, BoundClosure, initHooks_closure, initHooks_closure0, initHooks_closure1, ListIterable, ListIterator, MappedIterable, EfficientLengthMappedIterable, MappedIterator, MappedListIterable, FixedLengthListMixin, _AsyncError, Future, Future_wait_handleError, Future_wait_closure, _Completer, _AsyncCompleter, _Future, BoundClosure$2, _Future__addListener_closure, _Future__chainFutures_closure, _Future__chainFutures_closure0, _Future__asyncComplete_closure, _Future__asyncCompleteError_closure, _Future__propagateToListeners_closure, _Future__propagateToListeners_closure0, _Future__propagateToListeners__closure, _Future__propagateToListeners__closure0, Stream, Stream_forEach_closure, Stream_forEach__closure, Stream_forEach__closure0, Stream_forEach_closure0, Stream_length_closure, Stream_length_closure0, StreamSubscription, _StreamController, _StreamController__subscribe_closure, _StreamController__recordCancel_complete, _SyncStreamControllerDispatch, _AsyncStreamControllerDispatch, _AsyncStreamController, _StreamController__AsyncStreamControllerDispatch, _SyncStreamController, _StreamController__SyncStreamControllerDispatch, _ControllerStream, _ControllerSubscription, BoundClosure$0, _EventSink, _BufferingStreamSubscription, _BufferingStreamSubscription__sendDone_sendDone, _StreamImpl, _DelayedEvent, _DelayedData, _DelayedDone, _PendingEvents, _PendingEvents_schedule_closure, _StreamImplEvents, _cancelAndError_closure, _cancelAndErrorClosure_closure, _BaseZone, _BaseZone_bindCallback_closure, _BaseZone_bindCallback_closure0, _BaseZone_bindUnaryCallback_closure, _BaseZone_bindUnaryCallback_closure0, _rootHandleUncaughtError_closure, _rootHandleUncaughtError__closure, _RootZone, _HashMap, _HashMap_values_closure, HashMapKeyIterable, HashMapKeyIterator, _LinkedHashMap, _LinkedHashMap_values_closure, LinkedHashMapCell, LinkedHashMapKeyIterable, LinkedHashMapKeyIterator, _HashSet, _IdentityHashSet, HashSetIterator, _HashSetBase, IterableBase, ListMixin, Maps_mapToString_closure, ListQueue, _ListQueueIterator, NoSuchMethodError_toString_closure, Duration, Duration_toString_sixDigits, Duration_toString_twoDigits, Error, NullThrownError, ArgumentError, RangeError, UnsupportedError, UnimplementedError, StateError, ConcurrentModificationError, StackOverflowError, CyclicInitializationError, _ExceptionImplementation, Expando, Function, Iterator, Null, Object, StackTrace, StringBuffer, Symbol, Interceptor_ListMixin, Interceptor_ListMixin_ImmutableListMixin, ImmutableListMixin, FixedSizeListIterator, ReceivePort, TypedData_ListMixin, TypedData_ListMixin_FixedLengthListMixin, TypedData_ListMixin0, TypedData_ListMixin_FixedLengthListMixin0, TypedData_ListMixin1, TypedData_ListMixin_FixedLengthListMixin1, convertDartToNative_Dictionary_closure, GlProgram, Matrix4, main_animate, main_tick, gridBufferSetup_scaleV, gridBufferSetup_addColor, gridBufferSetup_add3, gridifyTriangle_scaleV, gridifyTriangle_addV, gridifyTriangle_addVtoc, icosaBufferSetup_scaleV, icosaBufferSetup_addV, icosaBufferSetup_addVtoa, icosaBufferSetup_closure, icosaBufferSetup_addColor, icosaBufferSetup_add3, icosaBufferSetup_closure0, Figure, Closure$2, Closure$0, Closure$7, Closure$1, Closure$20];
 }
