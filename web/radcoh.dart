@@ -143,7 +143,6 @@ List<double> genGridPointList() {
   
   List<double> v = [-hs, -hs/sl, 0.0]; // vector from the center of the triangle to the leftmost vertex
   
-  // we'll return this later
   List<List<List<double>>> a = new List(5);
   
   for(var i = 0; i < 5; i++) {
@@ -158,7 +157,6 @@ List<double> genGridPointList() {
     }
   }
   
-  // we'll return this later
   List<List<double>> b = new List();
   
   for(var i = 0; i < 4; i++) {
@@ -273,6 +271,46 @@ void gridBufferSetup(RenderingContext gl) {
 
 }
 
+List<double> gridifyTriangle(List<double> leftEdge, List<double> botEdge, double s) {
+  scaleV (xs, c) => [c * xs[0], c * xs[1], c * xs[2]];
+  
+  List<List<List<double>>> a = new List(5);
+  
+  for(var i = 0; i < 5; i++) {
+    var x = scaleV(u2, i * s/4);
+    x = addV(x, v);
+    a[i] = new List();
+    a[i].add(x);
+    
+    for(var j = 1; j < 5 - i; j++) {
+      var y = scaleV(u1, j * s/4);
+      a[i].add( addV(x, y) );
+    }
+  }
+  
+  List<List<double>> b = new List();
+  
+  for(var i = 0; i < 4; i++) {
+    for(var j = 0; j < 4 - i; j++) {
+     b.add(a[i][j]);
+     b.add(a[i+1][j]);
+    }
+    b..add(a[i][4-i]);
+  }
+  
+  List<double> c = new List();
+  addVtoc (v) => c..add(v[0])..add(v[1])..add(v[2]);
+  for(var i = 7, off = 0; i >= 1; off += i+2, i -= 2) {
+    for(var j = 0; j < i; j++) {
+      var z = off + j;
+      addVtoc(b[z]);
+      addVtoc(b[z+1]);
+      addVtoc(b[z+2]);
+    }
+  }
+  return c;
+}
+
 
 void icosaBufferSetup(RenderingContext gl) {
   //TODO refactor so we dont repeat all this? meh, this separate buffer is temporary
@@ -294,6 +332,13 @@ void icosaBufferSetup(RenderingContext gl) {
                           [-1.0,  phi, 0.0],
                           [ 1.0,  phi, 0.0],
                           [ phi,  0.0, 1.0]];
+  
+  var vdiff_top = new List();
+  for(var i = 0; i < v.length; i++) {
+    vdiff_top.add( addV(top, scaleV(v[i], -1.0)) );
+  }
+  
+  
  
   for(var i = 0; i < 5; i++) {
     addVtoa(top);
