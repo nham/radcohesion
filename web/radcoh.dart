@@ -16,7 +16,7 @@ Figure triGrid, icosa;
 
 void main() {
   grid_mvMatrix = new Matrix4()..identity();
-  tetra_mvMatrix = new Matrix4()..identity();
+  icosa_mvMatrix = new Matrix4()..identity();
   CanvasElement canvas = querySelector("#the-haps");
   
   RenderingContext gl;
@@ -29,6 +29,9 @@ void main() {
   
   var p = programSetup(gl);
   gl.useProgram(p.program);
+  
+  genGridPointList();
+  
   
   gridBufferSetup(gl);
   icosaBufferSetup(gl);
@@ -51,7 +54,9 @@ void main() {
    animate(t);
    drawScene(gl, p, canvas.width / canvas.height);
   }
+  
   tick(0);
+  
 }
 
 RenderingContext glContextSetup(CanvasElement canvas) {
@@ -132,41 +137,51 @@ List<double> genGridPointList() {
   
   double s = 3.2;
   double hs = s / 2;
-  double sc = s / 4; // used scale u1 through u3 when generating the coords
   
   List<double> u1 = [1.0, 0.0, 0.0]; // from the leftmost going to rightmost
-  List<double> u2 = [ -x,   y, 0.0]; // from the rightmost going to topmost
-  List<double> u3 = [ -x,  -y, 0.0]; // from the topmost going to leftmost
+  List<double> u2 = [  x,   y, 0.0]; // from the topmost going to leftmost
   
   List<double> v = [-hs, -hs/sl, 0.0]; // vector from the center of the triangle to the leftmost vertex
   
   // we'll return this later
-  List<double> a = new List();
+  List<List<List<double>>> a = new List(5);
   
   for(var i = 0; i < 5; i++) {
-    var x = scaleV(u1, i * sc);
+    var x = scaleV(u2, i * s/4);
     x = addV(x, v);
-    a..add(x[0])..add(x[1])..add(x[2]);
+    a[i] = new List();
+    a[i].add(x);
+    
+    for(var j = 1; j < 5 - i; j++) {
+      var y = scaleV(u1, j * s/4);
+      a[i].add( addV(x, y) );
+    }
   }
   
-  List<double> rm = a.sublist(3*4, 3*5);
-
-  for(var i = 1; i < 5; i++) {
-    var x = scaleV(u2, i * sc);
-    x = addV(x, rm);
-    a..add(x[0])..add(x[1])..add(x[2]);
+  // we'll return this later
+  List<List<double>> b = new List();
+  
+  for(var i = 0; i < 4; i++) {
+    for(var j = 0; j < 4 - i; j++) {
+     b.add(a[i][j]);
+     b.add(a[i+1][j]);
+    }
+    b..add(a[i][4-i]);
   }
   
-  List<double> tm = a.sublist(3*8, 3*9); // topmost
-
-  for(var i = 1; i < 4; i++) {
-    var x = scaleV(u3, i * sc);
-    x = addV(x, tm);
-    a..add(x[0])..add(x[1])..add(x[2]);
+  List<double> c = new List();
+  addVtoc (v) => c..add(v[0])..add(v[1])..add(v[2]);
+  for(var i = 7, off = 0; i >= 1; off += i+2, i -= 2) {
+    for(var j = 0; j < i; j++) {
+      var z = off + j;
+      addVtoc(b[z]);
+      addVtoc(b[z+1]);
+      addVtoc(b[z+2]);
+    }
   }
-  
-  return a;
+  return c;
 }
+
 
 void gridBufferSetup(RenderingContext gl) {
   // I think there's a notion of a "current" array buffer, whatever an array buffer is
@@ -183,7 +198,6 @@ void gridBufferSetup(RenderingContext gl) {
   ibuf = gl.createBuffer();
   cbuf = gl.createBuffer();
   triGrid = new Figure(pbuf, ibuf, cbuf, [0.0, 1.8, -9.0], 0.0);
-
   
   var a = genGridPointList();  
   
@@ -191,44 +205,72 @@ void gridBufferSetup(RenderingContext gl) {
   gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(a), STATIC_DRAW);
   
   
-  var gridPointsIndices = [0, 4, 4, 8, 8, 0, // outer vertices of triangle
-      1, 7,  1, 11, // lines involving 1
-      2, 6,  2, 10, // lines involving 2
-      3, 5,  3, 9,  // lines involving 3
-      5, 11,
-      6, 10,
-      7, 9];
+  var gridPointsIndices = [ 0,  1,  2,  3,  4,  5,  6,  7,  8,
+                            9, 10, 11, 12, 13, 14, 15, 16, 17,
+                           18, 19, 20,
+
+                           21, 22, 23, 24, 25, 26, 27, 28, 29,
+                           30, 31, 32, 33, 34, 35,
+ 
+                           36, 37, 38, 39, 40, 41, 42, 43, 44,
+
+                           45, 46, 47];
+
   
   gl.bindBuffer(ELEMENT_ARRAY_BUFFER, ibuf);
   gl.bufferDataTyped(ELEMENT_ARRAY_BUFFER, 
       new Uint16List.fromList(gridPointsIndices), STATIC_DRAW);
   
-
-  var colors = [1.0,  1.0,  1.0,  1.0,    // notblack
-                1.0,  0.0,  0.0,  1.0,    // red
-                1.0,  0.0,  0.0,  1.0,    // red
-                1.0,  0.0,  0.0,  1.0,    // red
-                1.0,  1.0,  1.0,  1.0,    // notblack
-                0.0,  1.0,  0.0,  1.0,    // green
-                0.0,  1.0,  0.0,  1.0,    // green
-                0.0,  1.0,  0.0,  1.0,    // green
-                1.0,  1.0,  1.0,  1.0,    // notblack
-                0.0,  0.0,  1.0,  1.0,    // blue
-                0.0,  0.0,  1.0,  1.0,    // blue
-                0.0,  0.0,  1.0,  1.0     // blue
-                ];
+  scaleV (xs, c) => [c * xs[0], c * xs[1], c * xs[2], c * xs[3]];
   
-  print("lens: ${a.length}, ${colors.length}");
+  var purp   = [192.0,  62.0,  255.0,  255.0],
+      blue   = [48.0,  186.0,  232.0,  255.0],
+      green  = [121.0,  255.0,  65.0,  255.0],
+      orange = [232.0,  171.0,  48.0,  255.0],
+      salmon = [255.0,  71.0,  117.0,  255.0];
+  
+  
+  purp = scaleV(purp, 1/255.0);
+  blue = scaleV(blue, 1/255.0);
+  green = scaleV(green, 1/255.0);
+  orange = scaleV(orange, 1/255.0);
+  salmon = scaleV(salmon, 1/255.0);
+  
+  var colors = new List();
+  addColor(v) => colors..add(v[0])..add(v[1])..add(v[2])..add(v[3]);
+  
+  add3(v) {
+    addColor(v);
+    addColor(v);
+    addColor(v);
+  }
+  
+  add3(purp);
+  add3(blue);
+  add3(green);
+  add3(orange);
+  add3(salmon);
+  
+  add3(purp);
+  add3(blue);
+  add3(green);
+  add3(orange);
+  add3(salmon);
+  
+  add3(purp);
+  add3(blue);
+  add3(green);
+  add3(orange);
+  add3(salmon);
+  
+  add3(purp);
+  add3(blue);
+  add3(green);
+  add3(orange);
+  
   gl.bindBuffer(ARRAY_BUFFER, cbuf);
   gl.bufferData(ARRAY_BUFFER, new Float32List.fromList(colors), STATIC_DRAW);
 
-  
-  /*
-  gridShapeIndexBuffer = gl.createBuffer();
-  gl.bindBuffer(ARRAY_BUFFER, gridShapeIndexBuffer);
-  gl.bufferDataTyped(ELEMENT_ARRAY_BUFFER, 
-      new Uint16List.fromList([0,4,8]), STATIC_DRAW);
-  */
 }
 
 
@@ -344,8 +386,6 @@ void icosaBufferSetup(RenderingContext gl) {
   addVtoa(w3);
   addVtoa(v1);
   
-  print(a);
-  
   
   Buffer pbuf, ibuf, cbuf;
 
@@ -376,74 +416,52 @@ void icosaBufferSetup(RenderingContext gl) {
   gl.bufferDataTyped(ELEMENT_ARRAY_BUFFER, 
       new Uint16List.fromList(gridPointsIndices), STATIC_DRAW);
   
+  var colors = new List();
+  addColor(v) => colors..add(v[0])..add(v[1])..add(v[2])..add(v[3]);
   
-  var colors = [
-                192.0,  62.0,  255.0,  255.0, //purp
-                192.0,  62.0,  255.0,  255.0,
-                192.0,  62.0,  255.0,  255.0,
-                48.0,  186.0,  232.0,  255.0, // blue
-                48.0,  186.0,  232.0,  255.0,
-                48.0,  186.0,  232.0,  255.0,
-                121.0,  255.0,  65.0,  255.0, // green
-                121.0,  255.0,  65.0,  255.0,
-                121.0,  255.0,  65.0,  255.0,
-                232.0,  171.0,  48.0,  255.0, // orangeutan
-                232.0,  171.0,  48.0,  255.0, 
-                232.0,  171.0,  48.0,  255.0, 
-                255.0,  71.0,  117.0,  255.0, // SALMON
-                255.0,  71.0,  117.0,  255.0, 
-                255.0,  71.0,  117.0,  255.0, 
-                
-                192.0,  62.0,  255.0,  255 * 0.65, //purp
-                192.0,  62.0,  255.0,  255 * 0.65,
-                192.0,  62.0,  255.0,  255 * 0.65,
-                48.0,  186.0,  232.0,  255 * 0.65, // blue
-                48.0,  186.0,  232.0,  255 * 0.65,
-                48.0,  186.0,  232.0,  255 * 0.65,
-                121.0,  255.0,  65.0,  255 * 0.65, // green
-                121.0,  255.0,  65.0,  255 * 0.65,
-                121.0,  255.0,  65.0,  255 * 0.65,
-                232.0,  171.0,  48.0,  255 * 0.65, // orangeutan
-                232.0,  171.0,  48.0,  255 * 0.65, 
-                232.0,  171.0,  48.0,  255 * 0.65, 
-                255.0,  71.0,  117.0,  255 * 0.65, // SALMON
-                255.0,  71.0,  117.0,  255 * 0.65, 
-                255.0,  71.0,  117.0,  255 * 0.65,
-                
-                255.0,  255.0,  255.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0,  
-                255.0,  255.0,  255.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                255.0,  255.0,  255.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0, 
-                0.0,  0.0,  0.0,  255.0
-                ];
+  add3(v) {
+    addColor(v);
+    addColor(v);
+    addColor(v);
+  }
+  
+  var purp   = [192.0,  62.0,  255.0,  255.0],
+      blue   = [48.0,  186.0,  232.0,  255.0],
+      green  = [121.0,  255.0,  65.0,  255.0],
+      orange = [232.0,  171.0,  48.0,  255.0],
+      salmon = [255.0,  71.0,  117.0,  255.0],
+      purp_l   = [192.0,  62.0,  255.0,  255.0 * 0.65],
+      blue_l   = [48.0,  186.0,  232.0,  255.0 * 0.65],
+      green_l  = [121.0,  255.0,  65.0,  255.0 * 0.65],
+      orange_l = [232.0,  171.0,  48.0,  255.0 * 0.65],
+      salmon_l = [255.0,  71.0,  117.0,  255.0 * 0.65],
+      white = [255.0,  255.0,  255.0,  255.0],
+      black = [0.0,  0.0,  0.0,  255.0];
+  
+  add3(purp);
+  add3(blue);
+  add3(green);
+  add3(orange);
+  add3(salmon);
+  
+  add3(purp_l);
+  add3(blue_l);
+  add3(green_l);
+  add3(orange_l);
+  add3(salmon_l);
+  
+  add3(white);
+  add3(black);
+  add3(white);
+  add3(black);
+  add3(white);
+  add3(black);
+  add3(white);
+  add3(black);
+  add3(white);
+  add3(black);
   
   var new_colors = new List.from(colors.map((x) => x / 255.0));
-  print(new_colors);
   
   gl.bindBuffer(ARRAY_BUFFER, cbuf);
   gl.bufferData(ARRAY_BUFFER, new Float32List.fromList(new_colors), STATIC_DRAW);
@@ -465,15 +483,15 @@ class Figure {
 Matrix4 pMatrix;
 /// Model-View matrices
 Matrix4 grid_mvMatrix;
-Matrix4 tetra_mvMatrix;
+Matrix4 icosa_mvMatrix;
 List<Matrix4> mvStack = new List<Matrix4>();
 
 // fat stacks
 grid_mvPushMatrix() => mvStack.add(new Matrix4.fromMatrix(grid_mvMatrix));
 grid_mvPopMatrix() => grid_mvMatrix = mvStack.removeLast();
 
-tetra_mvPushMatrix() => mvStack.add(new Matrix4.fromMatrix(tetra_mvMatrix));
-tetra_mvPopMatrix() => tetra_mvMatrix = mvStack.removeLast();
+icosa_mvPushMatrix() => mvStack.add(new Matrix4.fromMatrix(icosa_mvMatrix));
+icosa_mvPopMatrix() => icosa_mvMatrix = mvStack.removeLast();
 
 
 void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
@@ -494,7 +512,7 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   gl.bindBuffer(ARRAY_BUFFER, triGrid.posBuf);
   // Set the vertex attribute to the size of each individual element (x,y,z)
   gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
-  
+
   gl.bindBuffer(ELEMENT_ARRAY_BUFFER, triGrid.indexBuf);
   gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
 
@@ -504,16 +522,16 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   
   gl.uniformMatrix4fv(prog.uniforms['uPMatrix'], false, pMatrix.buf);
   gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, grid_mvMatrix.buf);
-  gl.drawElements(LINES, 24, UNSIGNED_SHORT, 0);
+  gl.drawElements(TRIANGLES, 48, UNSIGNED_SHORT, 0);
   
   grid_mvPopMatrix();
   
   
-  // and now we tetra
-  tetra_mvPushMatrix();
+  // and now we icosa
+  icosa_mvPushMatrix();
 
-  tetra_mvMatrix.translate(icosa.pos);
-  tetra_mvMatrix.rotateY(radians(icosa.ang)).rotateX(radians(icosa.ang));
+  icosa_mvMatrix.translate(icosa.pos);
+  icosa_mvMatrix.rotateY(radians(icosa.ang)).rotateX(radians(icosa.ang));
   
   gl.bindBuffer(ARRAY_BUFFER, icosa.posBuf);
   // Set the vertex attribute to the size of each individual element (x,y,z)
@@ -527,11 +545,11 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   
   
   gl.uniformMatrix4fv(prog.uniforms['uPMatrix'], false, pMatrix.buf);
-  gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, tetra_mvMatrix.buf);
+  gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, icosa_mvMatrix.buf);
   gl.drawElements(TRIANGLES, 60, UNSIGNED_SHORT, 0);
 
   
 // Finally, reset the matrix back to what it was before we moved around.
-  tetra_mvPopMatrix();
+  icosa_mvPopMatrix();
 
 }
