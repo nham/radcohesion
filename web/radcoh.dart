@@ -298,14 +298,6 @@ void icosaBufferSetup(RenderingContext gl) {
   for (var i = 0; i < 5; i++) {
     a.addAll( gridifyTriangle(w[i], wdiff_top[i], wdiff_prev[i], 1.0) );
   }
-  
-  /*
-  for(var i = 0; i < 5; i++) {
-    addVtoa(bot);
-    addVtoa(w[i]);
-    addVtoa(w[(i+1) % 5]);
-  }
-  */
 
 
   var z = new List();
@@ -323,9 +315,16 @@ void icosaBufferSetup(RenderingContext gl) {
   z.add(v[0]);
   
   for (var i = 0; i < 10; i++) {
+    var x = addV(z[i+1], scaleV(z[i], -1.0));
+    var y =  addV(z[i+2], scaleV(z[i], -1.0));
+ 
+    a.addAll( gridifyTriangle(z[i], x, y, 1.0) );
+  
+    /*
     addVtoa(z[i]);
     addVtoa(z[i+1]);
     addVtoa(z[i+2]);
+    */
   }
   
   Buffer pbuf, ibuf, cbuf;
@@ -340,7 +339,7 @@ void icosaBufferSetup(RenderingContext gl) {
   gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(a), STATIC_DRAW);
   
   var gridPointsIndices = [];
-  for(int i = 0; i < 510; i++) {
+  for(int i = 0; i < 960; i++) {
     gridPointsIndices.add(i);
   }
   
@@ -379,23 +378,21 @@ void icosaBufferSetup(RenderingContext gl) {
   }
   
   for(var i = 0; i < 16; i++) {
-    add3(purp_l);
-    add3(blue_l);
-    add3(green_l);
-    add3(orange_l);
-    add3(salmon_l);
+    add3(purp);
+    add3(blue);
+    add3(green);
+    add3(orange);
+    add3(salmon);
   }
   
-  add3(white);
-  add3(black);
-  add3(white);
-  add3(black);
-  add3(white);
-  add3(black);
-  add3(white);
-  add3(black);
-  add3(white);
-  add3(black);
+
+  for(var i = 0; i < 32; i++) {
+    add3(purp);
+    add3(blue);
+    add3(green);
+    add3(orange);
+    add3(salmon);
+  }
   
   var new_colors = colors.map((x) => x / 255.0).toList();
   
@@ -482,7 +479,7 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   
   gl.uniformMatrix4fv(prog.uniforms['uPMatrix'], false, pMatrix.buf);
   gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, icosa_mvMatrix.buf);
-  gl.drawElements(TRIANGLES, 510, UNSIGNED_SHORT, 0);
+  gl.drawElements(TRIANGLES, 960, UNSIGNED_SHORT, 0);
 
   
 // Finally, reset the matrix back to what it was before we moved around.
