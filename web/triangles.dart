@@ -1,0 +1,360 @@
+library rad_cohesion;
+
+import 'dart:math';
+import 'dart:html';
+import 'dart:web_gl';
+import 'dart:typed_data';
+
+// will replace this with vector_math package eventually. I just want to get something working now
+part 'matrix4.dart';
+
+// not sure yet
+part 'gl_program.dart';
+
+
+Figure icosa;
+
+void main() {
+  icosa_mvMatrix = new Matrix4()..identity();
+  CanvasElement canvas = querySelector("#the-haps");
+  
+  RenderingContext gl;
+  try {
+    gl = glContextSetup(canvas);
+  } catch(e) {
+    window.alert(e);
+    return;
+  }
+  
+  var p = programSetup(gl);
+  gl.useProgram(p.program);
+  
+  icosaBufferSetup(gl);
+  
+  // a closure to keep the last time!
+  num lastTime = 0;
+  void animate(num now) {
+    if (lastTime != 0) {
+      var elapsed = now - lastTime;
+      icosa.ang += (10 * elapsed) / 1000.0;
+    }
+    
+    lastTime = now;
+  }
+  
+  // TODO: read about animationFrame and Futures, which is "the preferred Dart idiom"
+  tick (t) {
+   window.requestAnimationFrame(tick);
+   animate(t);
+   drawScene(gl, p, canvas.width / canvas.height);
+  }
+  
+  tick(0);
+  
+}
+
+RenderingContext glContextSetup(CanvasElement canvas) {
+  RenderingContext gl = canvas.getContext3d();
+  
+  if(gl == null) {
+    throw "Your browser doesn't have WebGL. It's really bumming me out.";
+  }
+  
+  gl.clearColor(0.5, 0.5, 0.5, 1.0);
+  gl.clearDepth(1.0);
+  
+  // set the GL viewport to the same size as the canvas element so there's no resizing
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  
+  // TODO: figure out what these two do
+  gl.enable(DEPTH_TEST);
+  gl.disable(BLEND);
+  
+  return gl;
+}
+
+
+GlProgram programSetup(RenderingContext gl) {
+  // Old color: vec4(0.85, 0.0, 1.0, 1.0);
+  var fragmentShader = '''
+      precision mediump float;
+      varying lowp vec4 vColor;
+
+      void main(void) {
+      gl_FragColor = vColor;
+      }
+      ''';
+  
+  var vertexShader = '''
+      attribute vec3 aVertexPosition;
+      attribute vec4 aVertexColor;
+
+      uniform mat4 uMVMatrix;
+      uniform mat4 uPMatrix;
+
+      varying lowp vec4 vColor;
+
+      void main(void) {
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        vColor = aVertexColor;
+      }''';
+  
+  return new GlProgram(gl, fragmentShader, vertexShader, ['aVertexPosition', 'aVertexColor'], ['uMVMatrix', 'uPMatrix']);
+}
+
+
+List<double> gridifyTriangle(List<double> startingPoint,
+                             List<double> leftEdge, 
+                             List<double> botEdge, 
+                             double s) {
+  scaleV (xs, c) => [c * xs[0], c * xs[1], c * xs[2]];
+
+  addV (u, v) => [u[0] + v[0], u[1] + v[1], u[2] + v[2]];
+  
+  List<List<List<double>>> a = new List(5);
+  
+  for(var i = 0; i < 5; i++) {
+    var x = scaleV(leftEdge, i * s/4);
+    x = addV(x, startingPoint);
+    a[i] = new List();
+    a[i].add(x);
+    
+    for(var j = 1; j < 5 - i; j++) {
+      var y = scaleV(botEdge, j * s/4);
+      a[i].add( addV(x, y) );
+    }
+  }
+  
+  List<List<double>> b = new List();
+  
+  for(var i = 0; i < 4; i++) {
+    for(var j = 0; j < 4 - i; j++) {
+     b.add(a[i][j]);
+     b.add(a[i+1][j]);
+    }
+    b..add(a[i][4-i]);
+  }
+  
+  List<double> c = new List();
+  addVtoc (v) => c..add(v[0])..add(v[1])..add(v[2]);
+  for(var i = 7, off = 0; i >= 1; off += i+2, i -= 2) {
+    for(var j = 0; j < i; j++) {
+      var z = off + j;
+      addVtoc(b[z]);
+      addVtoc(b[z+1]);
+      addVtoc(b[z+2]);
+    }
+  }
+  return c;
+}
+
+
+
+void icosaBufferSetup(RenderingContext gl) {
+  //TODO refactor so we dont repeat all this? meh, this separate buffer is temporary
+  scaleV (xs, c) => [c * xs[0], c * xs[1], c * xs[2]];
+  
+  addV (u, v) => [u[0] + v[0], u[1] + v[1], u[2] + v[2]];
+  
+  List<double> a = new List();
+  addVtoa (v) => a..add(v[0])..add(v[1])..add(v[2]);
+  
+  double phi = (1 + sqrt(5))/2;
+  
+  double s = 3.0;
+  
+  List<double> top = [ 0.0,  1.0, phi];
+
+  List<List<double>> v = [[ 0.0, -1.0, phi],
+                          [-phi,  0.0, 1.0],
+                          [-1.0,  phi, 0.0],
+                          [ 1.0,  phi, 0.0],
+                          [ phi,  0.0, 1.0]];
+  
+  var vdiff_top = new List();
+  var vdiff_prev = new List();
+  for(var i = 0; i < v.length; i++) {
+    vdiff_top.add( addV(top, scaleV(v[i], -1.0)) );
+    vdiff_prev.add( addV(v[(i - 1) % 5], scaleV(v[i], -1.0)) );
+  }
+  
+  for (var i = 0; i < 5; i++) {
+    a.addAll( gridifyTriangle(v[i], vdiff_top[i], vdiff_prev[i], 1.0) );
+  }
+
+  
+  // invert!
+  var bot = scaleV(top, -1.0);
+  //List<List<double>> w = v.map((x) => scaleV(x, -1.0));
+  var w = v.map((x) => scaleV(x, -1.0)).toList();
+  
+  var wdiff_top = new List();
+  var wdiff_prev = new List();
+  for(var i = 0; i < w.length; i++) {
+    wdiff_top.add( addV(bot, scaleV(w[i], -1.0)) );
+    wdiff_prev.add( addV(w[(i - 1) % 5], scaleV(w[i], -1.0)) );
+  }
+  
+  for (var i = 0; i < 5; i++) {
+    a.addAll( gridifyTriangle(w[i], wdiff_top[i], wdiff_prev[i], 1.0) );
+  }
+
+
+  var z = new List();
+  z.add(w[2]);
+  z.add(v[0]);
+  z.add(w[3]);
+  z.add(v[1]);
+  z.add(w[4]);
+  z.add(v[2]);
+  z.add(w[0]);
+  z.add(v[3]);
+  z.add(w[1]);
+  z.add(v[4]);
+  z.add(w[2]);
+  z.add(v[0]);
+  
+  for (var i = 0; i < 10; i++) {
+    var x = addV(z[i+1], scaleV(z[i], -1.0));
+    var y =  addV(z[i+2], scaleV(z[i], -1.0));
+ 
+    a.addAll( gridifyTriangle(z[i], x, y, 1.0) );
+  
+    /*
+    addVtoa(z[i]);
+    addVtoa(z[i+1]);
+    addVtoa(z[i+2]);
+    */
+  }
+  
+  Buffer pbuf, ibuf, cbuf;
+
+  pbuf = gl.createBuffer();
+  ibuf = gl.createBuffer();
+  cbuf = gl.createBuffer();
+  icosa = new Figure(pbuf, ibuf, cbuf, [0.0, 0.0, -6.0], 0.0);
+
+  
+  gl.bindBuffer(ARRAY_BUFFER, pbuf);
+  gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(a), STATIC_DRAW);
+  
+  var gridPointsIndices = [];
+  for(int i = 0; i < 960; i++) {
+    gridPointsIndices.add(i);
+  }
+  
+  gl.bindBuffer(ELEMENT_ARRAY_BUFFER, ibuf);
+  gl.bufferDataTyped(ELEMENT_ARRAY_BUFFER, 
+      new Uint16List.fromList(gridPointsIndices), STATIC_DRAW);
+  
+  var colors = new List();
+  addColor(v) => colors..add(v[0])..add(v[1])..add(v[2])..add(v[3]);
+  
+  add3(v) {
+    addColor(v);
+    addColor(v);
+    addColor(v);
+  }
+  
+  var purp   = [192.0,  62.0,  255.0,  255.0],
+      blue   = [48.0,  186.0,  232.0,  255.0],
+      green  = [121.0,  255.0,  65.0,  255.0],
+      orange = [232.0,  171.0,  48.0,  255.0],
+      salmon = [255.0,  71.0,  117.0,  255.0],
+      purp_l   = [192.0,  62.0,  255.0,  255.0 * 0.65],
+      blue_l   = [48.0,  186.0,  232.0,  255.0 * 0.65],
+      green_l  = [121.0,  255.0,  65.0,  255.0 * 0.65],
+      orange_l = [232.0,  171.0,  48.0,  255.0 * 0.65],
+      salmon_l = [255.0,  71.0,  117.0,  255.0 * 0.65],
+      white = [255.0,  255.0,  255.0,  255.0],
+      black = [0.0,  0.0,  0.0,  255.0];
+  
+  for(var i = 0; i < 16; i++) {
+    add3(purp);
+    add3(blue);
+    add3(green);
+    add3(orange);
+    add3(salmon);
+  }
+  
+  for(var i = 0; i < 16; i++) {
+    add3(purp);
+    add3(blue);
+    add3(green);
+    add3(orange);
+    add3(salmon);
+  }
+  
+
+  for(var i = 0; i < 32; i++) {
+    add3(purp);
+    add3(blue);
+    add3(green);
+    add3(orange);
+    add3(salmon);
+  }
+  
+  var new_colors = colors.map((x) => x / 255.0).toList();
+  
+  gl.bindBuffer(ARRAY_BUFFER, cbuf);
+  gl.bufferData(ARRAY_BUFFER, new Float32List.fromList(new_colors), STATIC_DRAW);
+}
+
+
+class Figure {
+  Buffer posBuf, indexBuf, colorBuf;
+  List <double> pos;
+  double ang;
+  
+  Figure(this.posBuf, this.indexBuf, this.colorBuf, this.pos, this.ang);
+    
+}
+
+
+
+/// Perspective matrix
+Matrix4 pMatrix;
+/// Model-View matrices
+Matrix4 icosa_mvMatrix;
+List<Matrix4> mvStack = new List<Matrix4>();
+
+// fat stacks
+icosa_mvPushMatrix() => mvStack.add(new Matrix4.fromMatrix(icosa_mvMatrix));
+icosa_mvPopMatrix() => icosa_mvMatrix = mvStack.removeLast();
+
+
+void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
+  // webgl documentation says "clear buffers to preset values"
+  // "glClear sets the bitplane area of the window to values previously selected"
+  // TODO: figure out what a bitplane is
+  gl.clear(COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT);
+  
+  // something something field of view is 45 degrees. the last 2 are something to do with depth.
+  pMatrix = Matrix4.perspective(45.0, aspect, 0.1, 100.0);
+  
+  // and now we icosa
+  icosa_mvPushMatrix();
+
+  icosa_mvMatrix.translate(icosa.pos);
+  icosa_mvMatrix.rotateY(radians(icosa.ang)).rotateX(radians(icosa.ang));
+  
+  gl.bindBuffer(ARRAY_BUFFER, icosa.posBuf);
+  // Set the vertex attribute to the size of each individual element (x,y,z)
+  gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
+  
+  gl.bindBuffer(ELEMENT_ARRAY_BUFFER, icosa.indexBuf);
+  gl.vertexAttribPointer(prog.attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
+
+  gl.bindBuffer(ARRAY_BUFFER, icosa.colorBuf);
+  gl.vertexAttribPointer(prog.attributes['aVertexColor'], 4, FLOAT, false, 0, 0);
+  
+  
+  gl.uniformMatrix4fv(prog.uniforms['uPMatrix'], false, pMatrix.buf);
+  gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, icosa_mvMatrix.buf);
+  gl.drawElements(TRIANGLES, 960, UNSIGNED_SHORT, 0);
+
+  
+// Finally, reset the matrix back to what it was before we moved around.
+  icosa_mvPopMatrix();
+
+}
