@@ -272,16 +272,14 @@ void icosaBufferSetup(RenderingContext gl) {
                           [ phi,  0.0, 1.0]];
   
   var vdiff_top = new List();
+  var vdiff_prev = new List();
   for(var i = 0; i < v.length; i++) {
     vdiff_top.add( addV(top, scaleV(v[i], -1.0)) );
+    vdiff_prev.add( addV(v[(i - 1) % 5], scaleV(v[i], -1.0)) );
   }
   
-  
- 
-  for(var i = 0; i < 5; i++) {
-    addVtoa(top);
-    addVtoa(v[i]);
-    addVtoa(v[(i+1) % 5]);
+  for (var i = 0; i < 5; i++) {
+    a.addAll( gridifyTriangle(v[i], vdiff_top[i], vdiff_prev[i], 1.0) );
   }
 
   
@@ -296,9 +294,7 @@ void icosaBufferSetup(RenderingContext gl) {
     addVtoa(w[(i+1) % 5]);
   }
 
-  
-  // w3, v1, w4, v2, w5, v3, w1, v4, w2, v5, w3
-  
+
   var z = new List();
   z.add(w[2]);
   z.add(v[0]);
@@ -324,25 +320,16 @@ void icosaBufferSetup(RenderingContext gl) {
   pbuf = gl.createBuffer();
   ibuf = gl.createBuffer();
   cbuf = gl.createBuffer();
-  icosa = new Figure(pbuf, ibuf, cbuf, [0.0, -3.0, -16.0], 0.0);
+  icosa = new Figure(pbuf, ibuf, cbuf, [0.0, -3.0, -13.0], 0.0);
 
   
   gl.bindBuffer(ARRAY_BUFFER, pbuf);
   gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(a), STATIC_DRAW);
   
-  
-  var gridPointsIndices = [ 0,  1,  2,   3,  4,  5,
-                            6,  7,  8,   9, 10, 11,
-                           12, 13, 14,  15, 16, 17,
-                           18, 19, 20,  21, 22, 23,
-                           24, 25, 26,  27, 28, 29,
-                           
-                           30, 31, 32,  33, 34, 35,
-                           36, 37, 38,  39, 40, 41, 
-                           42, 43, 44,  45, 46, 47, 
-                           48, 49, 50,  51, 52, 53,
-                           54, 55, 56,  57, 58, 59
-                          ];
+  var gridPointsIndices = [];
+  for(int i = 0; i < 285; i++) {
+    gridPointsIndices.add(i);
+  }
   
   gl.bindBuffer(ELEMENT_ARRAY_BUFFER, ibuf);
   gl.bufferDataTyped(ELEMENT_ARRAY_BUFFER, 
@@ -370,11 +357,13 @@ void icosaBufferSetup(RenderingContext gl) {
       white = [255.0,  255.0,  255.0,  255.0],
       black = [0.0,  0.0,  0.0,  255.0];
   
-  add3(purp);
-  add3(blue);
-  add3(green);
-  add3(orange);
-  add3(salmon);
+  for(var i = 0; i < 16; i++) {
+    add3(purp);
+    add3(blue);
+    add3(green);
+    add3(orange);
+    add3(salmon);
+  }
   
   add3(purp_l);
   add3(blue_l);
@@ -393,7 +382,7 @@ void icosaBufferSetup(RenderingContext gl) {
   add3(white);
   add3(black);
   
-  var new_colors = new List.from(colors.map((x) => x / 255.0));
+  var new_colors = colors.map((x) => x / 255.0).toList();
   
   gl.bindBuffer(ARRAY_BUFFER, cbuf);
   gl.bufferData(ARRAY_BUFFER, new Float32List.fromList(new_colors), STATIC_DRAW);
@@ -478,7 +467,7 @@ void drawScene(RenderingContext gl, GlProgram prog, double aspect) {
   
   gl.uniformMatrix4fv(prog.uniforms['uPMatrix'], false, pMatrix.buf);
   gl.uniformMatrix4fv(prog.uniforms['uMVMatrix'], false, icosa_mvMatrix.buf);
-  gl.drawElements(TRIANGLES, 60, UNSIGNED_SHORT, 0);
+  gl.drawElements(TRIANGLES, 285, UNSIGNED_SHORT, 0);
 
   
 // Finally, reset the matrix back to what it was before we moved around.
