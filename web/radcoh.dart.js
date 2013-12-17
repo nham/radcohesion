@@ -5562,7 +5562,7 @@ main: function() {
   t2.$dartCachedLength = t2.length;
   t2 = new E.Matrix4(t2);
   t2.identity$0();
-  $.tetra_mvMatrix = t2;
+  $.icosa_mvMatrix = t2;
   canvas = document.querySelector("#the-haps");
   t1.gl_0 = null;
   try {
@@ -5600,7 +5600,7 @@ programSetup: function(gl) {
 },
 
 genGridPointList: function() {
-  var t1, t2, x, y, u1, u2, v, a, i, t3, j, b, i0, c, off, line, z;
+  var t1, t2, x, y, u1, u2, v, a, i, t3, j, b, i0, c, off, z;
   t1 = new E.genGridPointList_scaleV();
   t2 = new E.genGridPointList_addV();
   x = Math.cos(1.0471975511965976);
@@ -5633,12 +5633,9 @@ genGridPointList: function() {
       throw H.ioore(t2, t1);
     b.push(t2[t1]);
   }
-  P.print("b length = " + b.length);
   c = P.List_List(null, null);
   t1 = new E.genGridPointList_addVtoc(c);
-  for (i = 7, off = 0; i >= 1; off += i + 2, i -= 2) {
-    line = "i = " + i + ", off = " + off;
-    H.printToConsole(line);
+  for (i = 7, off = 0; i >= 1; off += i + 2, i -= 2)
     for (j = 0; j < i; ++j) {
       z = off + j;
       if (z < 0 || z >= b.length)
@@ -5653,7 +5650,6 @@ genGridPointList: function() {
         throw H.ioore(b, t2);
       t1.call$1(b[t2]);
     }
-  }
   return c;
 },
 
@@ -5855,12 +5851,12 @@ drawScene: function(gl, prog, aspect) {
     throw H.ioore(t3, 0);
   $.grid_mvMatrix = t3.pop();
   t3 = $.get$mvStack();
-  t4 = new Float32Array($.tetra_mvMatrix.buf);
+  t4 = new Float32Array($.icosa_mvMatrix.buf);
   t4.$dartCachedLength = t4.length;
   t3.push(new E.Matrix4(t4));
-  t4 = $.tetra_mvMatrix;
+  t4 = $.icosa_mvMatrix;
   t4.translate$1(t4, $.icosa.pos);
-  $.tetra_mvMatrix.rotateY$1($.icosa.ang * 0.017453292519943295).rotateX$1($.icosa.ang * 0.017453292519943295);
+  $.icosa_mvMatrix.rotateY$1($.icosa.ang * 0.017453292519943295).rotateX$1($.icosa.ang * 0.017453292519943295);
   gl.bindBuffer(34962, $.icosa.posBuf);
   gl.vertexAttribPointer(t2.$index(t2, "aVertexPosition"), 3, 5126, false, 0, 0);
   gl.bindBuffer(34963, $.icosa.indexBuf);
@@ -5868,12 +5864,12 @@ drawScene: function(gl, prog, aspect) {
   gl.bindBuffer(34962, $.icosa.colorBuf);
   gl.vertexAttribPointer(t2.$index(t2, "aVertexColor"), 4, 5126, false, 0, 0);
   gl.uniformMatrix4fv(t1.$index(t1, "uPMatrix"), false, $.pMatrix.buf);
-  gl.uniformMatrix4fv(t1.$index(t1, "uMVMatrix"), false, $.tetra_mvMatrix.buf);
+  gl.uniformMatrix4fv(t1.$index(t1, "uMVMatrix"), false, $.icosa_mvMatrix.buf);
   gl.drawElements(4, 60, 5123, 0);
   t1 = $.get$mvStack();
   if (0 >= t1.length)
     throw H.ioore(t1, 0);
-  $.tetra_mvMatrix = t1.pop();
+  $.icosa_mvMatrix = t1.pop();
 },
 
 GlProgram: {"": "Object;attributes,uniforms,program,fragShader,vertShader,gl",
@@ -6656,7 +6652,7 @@ $.triGrid = null;
 $.icosa = null;
 $.pMatrix = null;
 $.grid_mvMatrix = null;
-$.tetra_mvMatrix = null;
+$.icosa_mvMatrix = null;
 J.$add$ns = function(receiver, a0) {
   if (typeof receiver == "number" && typeof a0 == "number")
     return receiver + a0;
