@@ -5743,11 +5743,10 @@ gridifyTriangle: function(startingPoint, leftEdge, botEdge, s) {
 },
 
 icosaBufferSetup: function(gl) {
-  var t1, t2, a, t3, phi, $top, v, vdiff_top, vdiff_prev, i, t4, t5, bot, w, wdiff_top, wdiff_prev, z, i0, pbuf, ibuf, cbuf, gridPointsIndices, colors, purp, blue, green, orange, salmon, purp_l, blue_l, green_l, orange_l, salmon_l, white, black, new_colors;
+  var t1, t2, a, phi, $top, v, vdiff_top, vdiff_prev, i, t3, t4, bot, w, wdiff_top, wdiff_prev, z, i0, x, y, pbuf, ibuf, cbuf, gridPointsIndices, colors, purp, blue, green, orange, salmon, new_colors;
   t1 = new E.icosaBufferSetup_scaleV();
   t2 = new E.icosaBufferSetup_addV();
   a = P.List_List(null, null);
-  t3 = new E.icosaBufferSetup_addVtoa(a);
   phi = (1 + Math.sqrt(5)) / 2;
   $top = [0, 1, phi];
   v = [[0, -1, phi], [-phi, 0, 1], [-1, phi, 0], [1, phi, 0], [phi, 0, 1]];
@@ -5755,47 +5754,47 @@ icosaBufferSetup: function(gl) {
   vdiff_prev = P.List_List(null, null);
   for (i = 0; i < 5; ++i) {
     vdiff_top.push(t2.call$2($top, t1.call$2(v[i], -1)));
-    t4 = C.JSInt_methods.$mod(i - 1, 5);
-    if (t4 < 0 || t4 >= 5)
-      throw H.ioore(v, t4);
-    vdiff_prev.push(t2.call$2(v[t4], t1.call$2(v[i], -1)));
+    t3 = C.JSInt_methods.$mod(i - 1, 5);
+    if (t3 < 0 || t3 >= 5)
+      throw H.ioore(v, t3);
+    vdiff_prev.push(t2.call$2(v[t3], t1.call$2(v[i], -1)));
   }
   for (i = 0; i < 5; ++i) {
-    t4 = v[i];
+    t3 = v[i];
     if (i >= vdiff_top.length)
       throw H.ioore(vdiff_top, i);
-    t5 = vdiff_top[i];
+    t4 = vdiff_top[i];
     if (i >= vdiff_prev.length)
       throw H.ioore(vdiff_prev, i);
-    C.JSArray_methods.addAll$1(a, E.gridifyTriangle(t4, t5, vdiff_prev[i], 1));
+    C.JSArray_methods.addAll$1(a, E.gridifyTriangle(t3, t4, vdiff_prev[i], 1));
   }
   bot = t1.call$2($top, -1);
-  t4 = new H.MappedListIterable(v, new E.icosaBufferSetup_closure(t1));
-  H.setRuntimeTypeInfo(t4, [null, null]);
-  w = t4.toList$0(t4);
+  t3 = new H.MappedListIterable(v, new E.icosaBufferSetup_closure(t1));
+  H.setRuntimeTypeInfo(t3, [null, null]);
+  w = t3.toList$0(t3);
   wdiff_top = P.List_List(null, null);
   wdiff_prev = P.List_List(null, null);
   for (i = 0; i < w.length; ++i) {
     wdiff_top.push(t2.call$2(bot, t1.call$2(w[i], -1)));
-    t4 = C.JSInt_methods.$mod(i - 1, 5);
-    t5 = w.length;
-    if (t4 < 0 || t4 >= t5)
-      throw H.ioore(w, t4);
-    t4 = w[t4];
-    if (i >= t5)
+    t3 = C.JSInt_methods.$mod(i - 1, 5);
+    t4 = w.length;
+    if (t3 < 0 || t3 >= t4)
+      throw H.ioore(w, t3);
+    t3 = w[t3];
+    if (i >= t4)
       throw H.ioore(w, i);
-    wdiff_prev.push(t2.call$2(t4, t1.call$2(w[i], -1)));
+    wdiff_prev.push(t2.call$2(t3, t1.call$2(w[i], -1)));
   }
   for (i = 0; i < 5; ++i) {
     if (i >= w.length)
       throw H.ioore(w, i);
-    t1 = w[i];
+    t3 = w[i];
     if (i >= wdiff_top.length)
       throw H.ioore(wdiff_top, i);
-    t2 = wdiff_top[i];
+    t4 = wdiff_top[i];
     if (i >= wdiff_prev.length)
       throw H.ioore(wdiff_prev, i);
-    C.JSArray_methods.addAll$1(a, E.gridifyTriangle(t1, t2, wdiff_prev[i], 1));
+    C.JSArray_methods.addAll$1(a, E.gridifyTriangle(t3, t4, wdiff_prev[i], 1));
   }
   z = P.List_List(null, null);
   if (2 >= w.length)
@@ -5823,28 +5822,36 @@ icosaBufferSetup: function(gl) {
   z.push(w[2]);
   z.push(v[0]);
   for (i = 0; i < 10; i = i0) {
+    i0 = i + 1;
+    t3 = z.length;
+    if (i0 >= t3)
+      throw H.ioore(z, i0);
+    t4 = z[i0];
+    if (i >= t3)
+      throw H.ioore(z, i);
+    x = t2.call$2(t4, t1.call$2(z[i], -1));
+    t4 = i + 2;
+    t3 = z.length;
+    if (t4 >= t3)
+      throw H.ioore(z, t4);
+    t4 = z[t4];
+    if (i >= t3)
+      throw H.ioore(z, i);
+    y = t2.call$2(t4, t1.call$2(z[i], -1));
     if (i >= z.length)
       throw H.ioore(z, i);
-    t3.call$1(z[i]);
-    i0 = i + 1;
-    if (i0 >= z.length)
-      throw H.ioore(z, i0);
-    t3.call$1(z[i0]);
-    t1 = i + 2;
-    if (t1 >= z.length)
-      throw H.ioore(z, t1);
-    t3.call$1(z[t1]);
+    C.JSArray_methods.addAll$1(a, E.gridifyTriangle(z[i], x, y, 1));
   }
   pbuf = gl.createBuffer();
   ibuf = gl.createBuffer();
   cbuf = gl.createBuffer();
-  $.icosa = new E.Figure(pbuf, ibuf, cbuf, [0, -2, -11], 0);
+  $.icosa = new E.Figure(pbuf, ibuf, cbuf, [0, 2, -10], 0);
   gl.bindBuffer(34962, pbuf);
   t1 = new Float32Array(a);
   t1.$dartCachedLength = t1.length;
   gl.bufferData(34962, t1, 35044);
   gridPointsIndices = [];
-  for (i = 0; i < 510; ++i)
+  for (i = 0; i < 960; ++i)
     gridPointsIndices.push(i);
   gl.bindBuffer(34963, ibuf);
   t1 = new Uint16Array(gridPointsIndices);
@@ -5857,13 +5864,6 @@ icosaBufferSetup: function(gl) {
   green = [121, 255, 65, 255];
   orange = [232, 171, 48, 255];
   salmon = [255, 71, 117, 255];
-  purp_l = [192, 62, 255, 165.75];
-  blue_l = [48, 186, 232, 165.75];
-  green_l = [121, 255, 65, 165.75];
-  orange_l = [232, 171, 48, 165.75];
-  salmon_l = [255, 71, 117, 165.75];
-  white = [255, 255, 255, 255];
-  black = [0, 0, 0, 255];
   for (i = 0; i < 16; ++i) {
     t1.call$1(purp);
     t1.call$1(blue);
@@ -5872,22 +5872,19 @@ icosaBufferSetup: function(gl) {
     t1.call$1(salmon);
   }
   for (i = 0; i < 16; ++i) {
-    t1.call$1(purp_l);
-    t1.call$1(blue_l);
-    t1.call$1(green_l);
-    t1.call$1(orange_l);
-    t1.call$1(salmon_l);
+    t1.call$1(purp);
+    t1.call$1(blue);
+    t1.call$1(green);
+    t1.call$1(orange);
+    t1.call$1(salmon);
   }
-  t1.call$1(white);
-  t1.call$1(black);
-  t1.call$1(white);
-  t1.call$1(black);
-  t1.call$1(white);
-  t1.call$1(black);
-  t1.call$1(white);
-  t1.call$1(black);
-  t1.call$1(white);
-  t1.call$1(black);
+  for (i = 0; i < 32; ++i) {
+    t1.call$1(purp);
+    t1.call$1(blue);
+    t1.call$1(green);
+    t1.call$1(orange);
+    t1.call$1(salmon);
+  }
   t1 = new H.MappedListIterable(colors, new E.icosaBufferSetup_closure0());
   H.setRuntimeTypeInfo(t1, [null, null]);
   new_colors = t1.toList$0(t1);
@@ -5898,51 +5895,31 @@ icosaBufferSetup: function(gl) {
 },
 
 drawScene: function(gl, prog, aspect) {
-  var t1, t2, t3, t4;
+  var t1, t2;
   gl.clear(16640);
   $.pMatrix = E.Matrix4_perspective(45, aspect, 0.1, 100);
   t1 = $.get$mvStack();
-  t2 = new Float32Array($.grid_mvMatrix.buf);
+  t2 = new Float32Array($.icosa_mvMatrix.buf);
   t2.$dartCachedLength = t2.length;
   t1.push(new E.Matrix4(t2));
-  t2 = $.grid_mvMatrix;
-  t2.translate$1(t2, $.triGrid.pos);
-  $.grid_mvMatrix.rotateZ$1($.triGrid.ang * 0.017453292519943295);
-  gl.bindBuffer(34962, $.triGrid.posBuf);
-  t2 = prog.attributes;
-  gl.vertexAttribPointer(t2.$index(t2, "aVertexPosition"), 3, 5126, false, 0, 0);
-  gl.bindBuffer(34963, $.triGrid.indexBuf);
-  gl.vertexAttribPointer(t2.$index(t2, "aVertexPosition"), 3, 5126, false, 0, 0);
-  gl.bindBuffer(34962, $.triGrid.colorBuf);
-  gl.vertexAttribPointer(t2.$index(t2, "aVertexColor"), 4, 5126, false, 0, 0);
-  t1 = prog.uniforms;
-  gl.uniformMatrix4fv(t1.$index(t1, "uPMatrix"), false, $.pMatrix.buf);
-  gl.uniformMatrix4fv(t1.$index(t1, "uMVMatrix"), false, $.grid_mvMatrix.buf);
-  gl.drawElements(4, 48, 5123, 0);
-  t3 = $.get$mvStack();
-  if (0 >= t3.length)
-    throw H.ioore(t3, 0);
-  $.grid_mvMatrix = t3.pop();
-  t3 = $.get$mvStack();
-  t4 = new Float32Array($.icosa_mvMatrix.buf);
-  t4.$dartCachedLength = t4.length;
-  t3.push(new E.Matrix4(t4));
-  t4 = $.icosa_mvMatrix;
-  t4.translate$1(t4, $.icosa.pos);
+  t2 = $.icosa_mvMatrix;
+  t2.translate$1(t2, $.icosa.pos);
   $.icosa_mvMatrix.rotateY$1($.icosa.ang * 0.017453292519943295).rotateX$1($.icosa.ang * 0.017453292519943295);
   gl.bindBuffer(34962, $.icosa.posBuf);
+  t2 = prog.attributes;
   gl.vertexAttribPointer(t2.$index(t2, "aVertexPosition"), 3, 5126, false, 0, 0);
   gl.bindBuffer(34963, $.icosa.indexBuf);
   gl.vertexAttribPointer(t2.$index(t2, "aVertexPosition"), 3, 5126, false, 0, 0);
   gl.bindBuffer(34962, $.icosa.colorBuf);
   gl.vertexAttribPointer(t2.$index(t2, "aVertexColor"), 4, 5126, false, 0, 0);
-  gl.uniformMatrix4fv(t1.$index(t1, "uPMatrix"), false, $.pMatrix.buf);
-  gl.uniformMatrix4fv(t1.$index(t1, "uMVMatrix"), false, $.icosa_mvMatrix.buf);
-  gl.drawElements(4, 510, 5123, 0);
-  t1 = $.get$mvStack();
-  if (0 >= t1.length)
-    throw H.ioore(t1, 0);
-  $.icosa_mvMatrix = t1.pop();
+  t2 = prog.uniforms;
+  gl.uniformMatrix4fv(t2.$index(t2, "uPMatrix"), false, $.pMatrix.buf);
+  gl.uniformMatrix4fv(t2.$index(t2, "uMVMatrix"), false, $.icosa_mvMatrix.buf);
+  gl.drawElements(4, 960, 5123, 0);
+  t2 = $.get$mvStack();
+  if (0 >= t2.length)
+    throw H.ioore(t2, 0);
+  $.icosa_mvMatrix = t2.pop();
 },
 
 GlProgram: {"": "Object;attributes,uniforms,program,fragShader,vertShader,gl",
@@ -6095,41 +6072,6 @@ Matrix4: {"": "Object;buf<",
     t1[9] = t6 * s + t7 * c;
     t1[10] = t8 * s + t9 * c;
     t1[11] = t10 * s + t2 * c;
-    return this;
-  },
-  rotateZ$1: function(radians) {
-    var c, s, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10;
-    c = Math.cos(radians);
-    s = Math.sin(radians);
-    t1 = this.buf;
-    t2 = C.JS_CONST_ZYJ(t1);
-    if (0 >= t2)
-      throw H.ioore(t1, 0);
-    t3 = t1[0];
-    if (4 >= t2)
-      throw H.ioore(t1, 4);
-    t4 = t1[4];
-    t5 = t1[1];
-    if (5 >= t2)
-      throw H.ioore(t1, 5);
-    t6 = t1[5];
-    t7 = t1[2];
-    if (6 >= t2)
-      throw H.ioore(t1, 6);
-    t8 = t1[6];
-    t9 = t1[3];
-    if (7 >= t2)
-      throw H.ioore(t1, 7);
-    t2 = t1[7];
-    t10 = -s;
-    t1[0] = t3 * c + t4 * s;
-    t1[1] = t5 * c + t6 * s;
-    t1[2] = t7 * c + t8 * s;
-    t1[3] = t9 * c + t2 * s;
-    t1[4] = t3 * t10 + t4 * c;
-    t1[5] = t5 * t10 + t6 * c;
-    t1[6] = t7 * t10 + t8 * c;
-    t1[7] = t9 * t10 + t2 * c;
     return this;
   },
   translate$1: function(_, v) {
